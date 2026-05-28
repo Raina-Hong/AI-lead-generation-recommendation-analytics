@@ -1,0 +1,5 @@
+metric,test_type,test_statistic,p_value,significant_at_0_05
+ctr,two_proportion_z_test,4.0937,4.2e-05,True
+inquiry_rate,two_proportion_z_test,5.1391,0.0,True
+purchase_rate,two_proportion_z_test,4.996,1e-06,True
+revenue_per_user,welch_t_test,5.8613,0.0,True

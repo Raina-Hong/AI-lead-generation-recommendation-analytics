@@ -1,0 +1,6 @@
+metric,control_value,treatment_value,absolute_difference,uplift_rate
+ctr,0.1942,0.2276,0.0334,0.172
+inquiry_rate,0.127,0.1632,0.0362,0.285
+purchase_rate,0.1032,0.1356,0.0324,0.314
+revenue_per_user,9.0971,13.1796,4.0825,0.4488
+total_revenue,45485.4,65898.25,20412.85,0.4488

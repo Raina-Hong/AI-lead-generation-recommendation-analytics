@@ -1,0 +1,5 @@
+payment_type,total_orders,unique_users,total_gmv,avg_order_value,avg_installments,avg_review_score
+credit_card,73941,71688,12229871.64,145.33,3.62,4.09
+boleto,19191,18717,2769932.71,123.87,1.0,4.08
+voucher,1861,1806,211402.83,104.34,1.04,4.05
+debit_card,1484,1469,208423.11,126.16,1.0,4.22

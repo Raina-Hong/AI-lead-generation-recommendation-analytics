@@ -1,0 +1,4 @@
+strategy,recommendations,unique_users,unique_products,unique_sellers,avg_recommendation_score,avg_product_review_score,avg_product_high_intent_rate,avg_seller_review_score,avg_seller_late_delivery_rate,product_diversity_rate,seller_diversity_rate
+intent_aware,5000,5000,10,8,0.9871,4.0822,0.9086,4.0854,0.0749,0.002,0.0016
+category_preference,5000,5000,105,83,0.4821,4.1977,0.9083,4.1444,0.0717,0.021,0.0166
+popularity_based,5000,5000,2,2,0.8567,3.9448,0.8771,3.8425,0.0969,0.0004,0.0004

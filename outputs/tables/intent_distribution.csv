@@ -1,0 +1,9 @@
+sentiment,purchase_intent,records,unique_users,avg_lead_score,high_intent_leads
+negative,high,9561,6413,68.22,9561
+negative,low,5926,5345,15.46,0
+negative,medium,1023,932,33.52,0
+neutral,high,5184,4144,92.87,5184
+neutral,medium,2755,2612,63.38,0
+positive,high,84929,73682,99.78,84929
+positive,low,1665,1639,59.62,0
+positive,medium,1607,1596,79.58,1432

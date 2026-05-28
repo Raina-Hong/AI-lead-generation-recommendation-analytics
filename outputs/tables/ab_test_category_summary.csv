@@ -1,0 +1,9 @@
+recommended_category,experiment_group,exposures,clicked,inquired,purchased,total_revenue,ctr,inquiry_rate,purchase_rate,revenue_per_user
+bed_bath_table,control,4981,965.0,633.0,516.0,45485.4,0.1937,0.1271,0.1036,9.1318
+bed_bath_table,treatment,456,112.0,73.0,60.0,5289.0,0.2456,0.1601,0.1316,11.5987
+computers_accessories,treatment,342,89.0,47.0,42.0,5808.81,0.2602,0.1374,0.1228,16.9848
+furniture_decor,control,19,6.0,2.0,0.0,0.0,0.3158,0.1053,0.0,0.0
+furniture_decor,treatment,3347,733.0,563.0,463.0,33035.05,0.219,0.1682,0.1383,9.87
+garden_tools,treatment,150,39.0,26.0,25.0,1371.95,0.26,0.1733,0.1667,9.1463
+health_beauty,treatment,423,88.0,60.0,48.0,15726.24,0.208,0.1418,0.1135,37.1779
+watches_gifts,treatment,282,77.0,47.0,40.0,4667.2,0.273,0.1667,0.1418,16.5504

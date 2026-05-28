@@ -1,0 +1,3 @@
+experiment_group,exposures,clicked,inquired,purchased,ctr,inquiry_rate,purchase_rate,total_revenue,revenue_per_user
+control,5000,971.0,635.0,516.0,0.1942,0.127,0.1032,45485.4,9.0971
+treatment,5000,1138.0,816.0,678.0,0.2276,0.1632,0.1356,65898.25,13.1796

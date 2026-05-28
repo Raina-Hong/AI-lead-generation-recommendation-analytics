@@ -1,0 +1,5 @@
+user_value_segment,records,unique_users,avg_lead_score,high_intent_leads,avg_gmv,total_gmv,high_intent_rate
+High Value,42766,31118,90.6,39592,244.47,10454977.9,0.9258
+Low Value,32229,31120,91.97,29129,48.18,1552691.0,0.9038
+Medium Value,35202,31120,91.52,32030,96.93,3412104.85,0.9099
+Unknown,2453,2180,30.5,355,172.76,423779.49,0.1447

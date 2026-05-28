@@ -1,0 +1,9 @@
+intent_category,records,unique_users,avg_lead_score,high_intent_leads,avg_gmv,total_gmv,high_intent_rate
+ready_to_purchase,51869,44842,99.93,51869,77.49,4019070.26,1.0
+price_sensitive,20822,19145,92.48,19280,321.24,6688908.4,0.9259
+comparison_shopping,24,20,91.67,21,85.86,2060.7,0.875
+neutral_or_unclear,5883,4860,85.69,4117,76.82,451913.97,0.6998
+delivery_concern,21995,19155,80.48,17573,152.97,3364614.76,0.799
+product_quality_concern,4883,4082,74.79,3812,136.65,667262.99,0.7807
+after_sales_issue,1057,886,70.49,796,171.78,181570.78,0.7531
+general_negative,6117,4212,50.81,3638,76.53,468151.38,0.5947

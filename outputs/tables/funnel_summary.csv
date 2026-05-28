@@ -1,0 +1,6 @@
+event_type,unique_users,conversion_from_view,previous_stage_users,stage_to_stage_conversion
+view,93358,1.0,,1.0
+click,65258,0.699,93358.0,0.699
+add_to_cart,48823,0.523,65258.0,0.7482
+inquiry,35024,0.3752,48823.0,0.7174
+purchase,93358,1.0,35024.0,2.6655
