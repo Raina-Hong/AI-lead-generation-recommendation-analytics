@@ -69,6 +69,15 @@ class RecommendationSystem:
         List[str]
             Recommended product IDs.
         """
+
+        """
+        Generate popularity-based recommendations.
+        (Serves as the Control strategy and the Fallback path for Cold-Start users)
+
+        # Note for Production:
+        # For new users with no historical intent/behavior (Cold Start), this fallback
+        # strategy ensures they still receive globally relevant, high-conversion items.
+        """
         purchase_history = self.interaction_history[
             self.interaction_history["event_type"] == "purchase"
         ]
@@ -171,6 +180,13 @@ class RecommendationSystem:
         List[str]
             Recommended product IDs.
         """
+
+        """
+        Generate intent-aware recommendations based on user lead scores.
+
+        Includes an epsilon-greedy exploration mechanism to empower SMB sellers
+        and prevent long-tail item starvation.
+        """
         logger.debug(
             f"Generating intent-aware recommendations for user {user_id} "
             f"with score {user_intent_score}"
@@ -269,6 +285,17 @@ class RecommendationSystem:
         -------
         pd.DataFrame
             Table containing metric, control, treatment, absolute delta, and uplift percentage.
+        """
+
+        """
+        Calculate uplift between control and treatment groups.
+
+        # TODO (V2 Roadmap - Comprehensive Experimentation):
+        # 1. Guardrail Metrics: Implement monitoring for negative metrics such as
+        #    Refund Rate, Complaint Rate, and Cannibalization Rate (shifting traffic
+        #    from already high-performing items without creating new value).
+        # 2. Shadow Testing: Deploy the intent model in Shadow Mode to validate
+        #    performance against concept drift before a full canary release.
         """
         logger.info("Evaluating A/B test results...")
 

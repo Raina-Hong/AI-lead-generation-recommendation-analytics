@@ -7,15 +7,17 @@ from src.utils import logger
 
 
 class DataPipeline:
+
     """
     Pipeline for cleaning Olist transaction data and generating synthetic funnel events.
 
     Notes
     -----
-    The original Olist dataset contains transactional order records but does not include
-    real front-end clickstream logs. Therefore, the funnel events generated here are
-    synthetic behavioural events designed for offline analytics and recommendation
-    strategy simulation.
+    The original Olist dataset lacks front-end clickstream logs. To demonstrate a
+    TikTok LIVE-style lead generation funnel, this pipeline synthetically generates
+    behavioral events (View -> Click -> Cart -> Inquiry -> Purchase) based on
+    reproducible business logic. This transforms a static reporting dataset into a
+    dynamic product analytics environment.
     """
 
     def __init__(self, raw_data_path: str = "data/raw/", random_state: int = 42):

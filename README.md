@@ -230,8 +230,8 @@ AI-lead-generation-recommendation-analytics/
 │
 ├── data/
 │   ├── raw/                         # Original Olist datasets
-│   ├── processed/                   # Cleaned order-level dataset
-│   └── final/                       # Final analytical tables
+│   ├── processed/                   # Cleaned intermediate datasets
+│   └── final/                       # Final analytical tables for modelling and dashboards
 │
 ├── notebook/
 │   ├── 01_data_understanding_and_cleaning.ipynb
@@ -242,8 +242,14 @@ AI-lead-generation-recommendation-analytics/
 │   ├── 06_recommendation_strategy.ipynb
 │   └── 07_ab_test_evaluation.ipynb
 │
+├── src/
+│   ├── data_pipeline.py             # Reusable data cleaning and synthetic funnel generation logic
+│   ├── intent_engine.py             # Intent feature extraction and lead scoring model module
+│   ├── recommendation_strategy.py   # Popularity-based and intent-aware recommendation logic
+│   └── utils.py                     # Shared logging and utility functions
+│
 ├── outputs/
-│   ├── tables/                      # SQL, funnel, intent, recommendation, and AB test outputs
+│   ├── tables/                      # SQL, funnel, intent, recommendation, and A/B test outputs
 │   └── model_results/               # Lead scoring model metrics and feature importance
 │
 ├── dashboard/
@@ -258,9 +264,20 @@ AI-lead-generation-recommendation-analytics/
 ├── sql/
 │   └── business_kpi_queries.sql
 │
+├── main.py                          # Lightweight entry point showing how src modules are organised
 ├── README.md
-└── requirements.txt
+├── requirements.txt
+├── .gitignore
 ```
+
+```markdown
+The `notebook/` folder documents the full analytical workflow, including data exploration, SQL analysis, funnel construction, LLM-style intent classification, lead scoring, recommendation strategy design, and A/B test evaluation.
+
+The `src/` folder contains modular Python implementations of the core pipeline components. These scripts refactor the main logic into reusable modules, including transaction cleaning, synthetic behavioural event generation, intent feature extraction, lead scoring, and recommendation ranking.
+
+The `main.py` file acts as a lightweight project entry point. It shows how the core modules are organised, while the full reproducible analysis and output generation are maintained in the notebooks.
+
+In this project, the notebooks demonstrate the end-to-end analytical process and generate final outputs, while the `src/` modules and `main.py` show how the same logic can be organised into a more production-style Python structure.
 
 ---
 

@@ -69,6 +69,7 @@ class IntentEngine:
         - Add live room watch duration, comment velocity, product click depth, and seller response speed.
         - Serve lead scores through an API for near real-time ranking.
         """
+
         logger.info("Extracting intent features from user behaviour and reviews...")
 
         if "user_id" not in user_data.columns:
@@ -142,6 +143,18 @@ class IntentEngine:
         RandomForestClassifier
             Trained lead scoring model.
         """
+        
+        """
+        Extract intent features by combining user-level data and behavioural logs.
+
+        # TODO (V2 Roadmap - TikTok LIVE Integration):
+        # 1. LLM Integration: Replace static 'review_score' with real-time text embeddings
+        #    (e.g., using Qwen/Llama-3 APIs) generated from live chat/inquiries.
+        # 2. Real-time Features: Integrate streaming metrics like 'chat_velocity' and
+        #    'live_room_watch_duration' from Kafka/Flink pipelines.
+        # 3. Multimodal Intent: Combine text sentiment with behavioral depth (e.g.,
+        #    time spent hovering over the 'Cart' button).
+        """
         logger.info("Training proxy model for lead scoring...")
 
         if target_col not in features_df.columns:
@@ -205,6 +218,15 @@ class IntentEngine:
         pd.Series
             Lead score between 0 and 1.
         """
+        """
+        Predict lead scores for new users based on extracted features.
+
+        # Note for Production (TikTok LIVE):
+        # This function is designed to be wrapped into a real-time Online Inference API.
+        # It expects pre-calculated features (e.g., from a Redis Feature Store) to provide
+        # millisecond-level latency for in-stream recommendation updates.
+        """
+        
         if not self.is_fitted:
             raise NotFittedError(
                 "The lead scoring model has not been fitted yet. "
