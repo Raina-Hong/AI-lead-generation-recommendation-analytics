@@ -1,28 +1,50 @@
-# AI-Powered Lead Generation & Recommendation Analytics
+# 🚀 AI-Powered Lead Generation & Recommendation Analytics Platform
 
-This project is an end-to-end analytics case study for an e-commerce marketplace. It uses the Brazilian Olist public e-commerce dataset to explore how transaction data, customer reviews, delivery performance, and simulated user behaviour can be combined to support lead generation and recommendation decisions.
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)
+![Pandas](https://img.shields.io/badge/Pandas-Data%20Cleaning-lightgrey.svg)
+![DuckDB](https://img.shields.io/badge/SQL-DuckDB-yellow.svg)
+![Scikit-Learn](https://img.shields.io/badge/Machine%20Learning-Scikit--Learn-orange.svg)
+![Tableau](https://img.shields.io/badge/BI-Tableau-blueviolet.svg)
+![A/B Testing](https://img.shields.io/badge/Experiment-A%2FB%20Testing-green.svg)
 
-The project was built as a portfolio project for data analytics, product analytics, and growth analytics roles. It focuses on a practical business question: **how can a platform identify high-intent customers and recommend products more effectively than a simple popularity-based approach?**
+> **TL;DR:** I built an end-to-end lead generation and recommendation analytics workflow on **96K+ e-commerce orders** from the Olist public dataset. The project combines transaction analysis, a synthetic behavioural event pipeline, rule-based intent classification, lead scoring automation, recommendation ranking, and Tableau dashboards. In the simulated experiment, the intent-aware recommendation strategy delivered a **+44.9% incremental lift in Revenue per User** and a **+31.4% increase in Purchase Rate** compared with a popularity-based baseline.
 
-The workflow covers data cleaning, SQL-based business analysis, simulated user funnel analysis, intent classification, lead scoring, recommendation strategy design, simulated A/B testing, and Tableau dashboard reporting.
+📚 **[Read the Full Project Report](report/project_report.md)** | 📊 **[View Interactive Tableau Dashboards](dashboard/tableau_links.md)** | 📖 **[Data Dictionary](report/data_dictionary.md)** | 📂 **[Browse Notebooks](notebook/)**
+
+---
+
+## Project Overview
+
+This project explores how an e-commerce marketplace can identify high-intent customers and recommend products more effectively than a simple popularity-based strategy.
+
+The raw Olist dataset provides historical transactions, customer reviews, delivery information, products, sellers, and payments. To turn these static transaction records into a fuller product analytics workflow, I designed a **business-driven synthetic event pipeline** that reconstructs user engagement stages such as view, click, add-to-cart, inquiry, and purchase. This makes it possible to analyse the customer funnel, generate lead quality signals, and evaluate recommendation strategies in a structured way.
+
+The final workflow connects four layers:
+
+1. **Marketplace performance analysis** using Python and DuckDB SQL;
+2. **Synthetic event engineering** to create full-funnel behavioural signals;
+3. **Intent and lead scoring logic** to identify high-priority customers;
+4. **Recommendation and experiment evaluation** to compare popularity-based and intent-aware strategies.
+
+The project is designed for data analytics, product analytics, growth analytics, and AI product roles, especially where business teams need both technical execution and commercial interpretation.
 
 ---
 
 ## Business Problem
 
-Small and medium-sized sellers on marketplace platforms often need help understanding which customers are more likely to purchase, which product categories create stronger commercial value, and whether a more personalised recommendation strategy can improve engagement.
+Small and medium-sized sellers on marketplace platforms often struggle with three practical questions:
 
-This project turns that problem into three analytical questions:
+1. Which customers are most likely to purchase?
+2. Which categories, sellers, and customer segments create the strongest commercial value?
+3. Can a more personalised recommendation strategy generate incremental growth beyond a basic popularity-based ranking?
 
-1. Which customers show stronger purchase intent?
-2. Which categories, sellers, and customer segments create the most business value?
-3. Can an intent-aware recommendation strategy outperform a basic popularity-based recommendation baseline?
+This project turns those questions into an analytical workflow that connects user intent, product relevance, seller reliability, and experiment measurement.
 
 ---
 
 ## Dataset
 
-The project uses the public Olist Brazilian e-commerce dataset. The raw data includes orders, customers, sellers, products, order items, payments, reviews, geolocation information, and product category translations.
+The project uses the public **Olist Brazilian E-Commerce Dataset**. The raw data includes orders, customers, sellers, products, order items, payments, reviews, geolocation information, and product category translations.
 
 Main raw tables used:
 
@@ -36,125 +58,168 @@ Main raw tables used:
 - `product_category_name_translation.csv`
 - `olist_geolocation_dataset.csv`
 
-After cleaning and feature engineering, the project creates analytical datasets for business reporting, lead scoring, recommendation analysis, and Tableau dashboards.
+After cleaning and feature engineering, the raw tables were transformed into analytical datasets for SQL reporting, intent classification, lead scoring, recommendation evaluation, and Tableau dashboards.
 
 ---
 
 ## Project Workflow
 
-### 1. Data Understanding and Cleaning
+### 1. Data Cleaning and Feature Engineering
 
-The raw Olist tables were merged into a cleaned order-level dataset. The cleaning process included handling missing values, standardising product categories, calculating GMV, creating delivery delay features, and preparing customer, product, seller, and review information for analysis.
+The raw Olist tables were merged into a cleaned order-level dataset. The cleaning process included:
 
-### 2. SQL Business Analysis
+- standardising product categories;
+- calculating GMV and average order value;
+- creating delivery delay and late-delivery indicators;
+- joining customer, product, seller, payment, and review information;
+- preparing analytical tables for SQL analysis and downstream modelling.
 
-DuckDB SQL was used to generate business KPI tables, including overall GMV, monthly GMV trends, category performance, seller performance, payment method analysis, review score patterns, and delivery delay impact.
+### 2. SQL Business Analysis with DuckDB
 
-### 3. Simulated User Funnel Analysis
+I used **DuckDB** for the SQL layer because it supports fast local analytical querying without the overhead of setting up a traditional database server. This made it a good fit for portfolio-scale data engineering and repeatable business KPI generation.
 
-Because the Olist dataset contains completed transactions but does not provide real clickstream logs, this project builds a simulated engagement funnel using reproducible business assumptions. The funnel includes:
+The SQL analysis generated outputs for:
 
-- view
-- click
-- add_to_cart
-- inquiry
-- purchase
+- overall marketplace KPIs;
+- monthly GMV trends;
+- top categories and sellers;
+- payment method analysis;
+- review score patterns;
+- delivery delay impact;
+- category and seller performance.
 
-This part is used to demonstrate lead-generation analytics logic rather than to claim access to real platform behaviour logs.
+### 3. Synthetic Event Pipeline Construction
 
-### 4. LLM-Inspired Intent Classification
+The original transaction data does not include frontend event logs, so I engineered a **synthetic event pipeline** to bridge the gap between static order records and dynamic user behaviour.
 
-A rule-based, LLM-inspired intent classification layer was built using review text, review score, delivery delay, behavioural signals, purchase value, and user segment information. Customers were assigned sentiment labels, intent categories, purchase intent levels, and rule-based lead scores.
+The pipeline creates five funnel stages:
 
-Intent categories include:
+- `view`
+- `click`
+- `add_to_cart`
+- `inquiry`
+- `purchase`
 
-- ready_to_purchase
-- price_sensitive
-- delivery_concern
-- product_quality_concern
-- after_sales_issue
-- general_negative
-- comparison_shopping
-- neutral_or_unclear
+This is not treated as a claim of real clickstream access. Instead, it demonstrates how transaction data can be extended into a full-funnel analytics layer using transparent business assumptions. The event pipeline supports lead generation analysis, behavioural segmentation, and recommendation evaluation.
 
-### 5. Lead Scoring Model
+### 4. Rule-Based Intent Classification Engine
 
-Logistic Regression and Random Forest models were used to automate the lead scoring framework. The model uses behavioural, sentiment, delivery, value segment, and intent features to classify high-intent leads.
+I built a transparent intent classification engine using review text, review score, delivery delay, behavioural signals, purchase value, and user segment information.
 
-The model performance is very high because the target label is generated from rule-based business logic. Therefore, the model should be interpreted as an automation layer for the lead scoring framework, not as proof of real-world predictive accuracy.
+The engine assigns users to interpretable business categories such as:
+
+- `ready_to_purchase`
+- `price_sensitive`
+- `delivery_concern`
+- `product_quality_concern`
+- `after_sales_issue`
+- `general_negative`
+- `comparison_shopping`
+- `neutral_or_unclear`
+
+This approach keeps the logic explainable for business stakeholders. Instead of using a black-box API, the rules make it clear why a user is classified as high-intent, price-sensitive, or delivery-concerned.
+
+### 5. Lead Score Automation and Feature Importance Analysis
+
+Logistic Regression and Random Forest models were used as a **proxy model for rule automation** and feature importance analysis.
+
+The purpose of this stage is not to claim a standalone production conversion model. Since the target labels are derived from explicit business rules, the near-perfect model performance is expected. The useful result is that the machine learning pipeline can capture and automate complex business logic, which could later be converted into a real-time lead scoring service if real behavioural labels were available.
 
 ### 6. Recommendation Strategy Design
 
 Three recommendation strategies were designed and compared:
 
-1. **Popularity-based recommendation**: recommends products mainly based on historical popularity.
-2. **Category-preference recommendation**: recommends products based on the user's preferred category.
-3. **Intent-aware recommendation**: combines user lead score, product high-intent rate, product review quality, seller review quality, and delivery reliability.
+1. **Popularity-based recommendation**  
+   Recommends products mainly based on historical popularity.
 
-### 7. Simulated A/B Test Evaluation
+2. **Category-preference recommendation**  
+   Recommends products based on the user's preferred category.
 
-A simulated A/B test was created to compare:
+3. **Intent-aware recommendation**  
+   Combines user lead score, product high-intent rate, product review quality, seller review quality, and delivery reliability.
 
-- **Control group**: popularity-based recommendation
-- **Treatment group**: intent-aware recommendation
+The intent-aware strategy was designed to move beyond “what is popular” and prioritise products that better match user intent and seller fulfilment quality.
 
-The evaluation compares CTR, inquiry rate, purchase rate, revenue per user, total revenue, and statistical significance.
+### 7. Simulated AB Test Evaluation
+
+A simulated experiment compared:
+
+- **Control group:** popularity-based recommendation;
+- **Treatment group:** intent-aware recommendation.
+
+The evaluation measured CTR, inquiry rate, purchase rate, revenue per user, total revenue, and statistical significance.
+
+In short: **intent-aware ranking drives deeper conversions, not just superficial clicks.**
 
 ---
 
 ## Key Results
 
-The cleaned dataset contains:
+### Marketplace Scale
 
-- **96,478** completed orders
-- **93,358** unique users
-- **32,216** unique products
-- **2,970** sellers
-- **BRL 15.42M** total GMV
-- **BRL 139.93** average order value
-- **4.09** average review score
+| Metric | Value |
+|---|---:|
+| Completed Orders | **96,478** |
+| Unique Users | **93,358** |
+| Unique Products | **32,216** |
+| Sellers | **2,970** |
+| Total GMV | **BRL 15.42M** |
+| Average Order Value | **BRL 139.93** |
+| Average Review Score | **4.09** |
 
-Top GMV categories included:
+### Top GMV Categories
 
-- health_beauty: BRL 1.41M
-- watches_gifts: BRL 1.26M
-- bed_bath_table: BRL 1.23M
-- sports_leisure: BRL 1.12M
-- computers_accessories: BRL 1.03M
+| Rank | Category | GMV |
+|---:|---|---:|
+| 1 | Health Beauty | **BRL 1.41M** |
+| 2 | Watches Gifts | **BRL 1.26M** |
+| 3 | Bed Bath Table | **BRL 1.23M** |
+| 4 | Sports Leisure | **BRL 1.12M** |
+| 5 | Computers Accessories | **BRL 1.03M** |
 
-Delivery performance had a clear impact on customer satisfaction:
+### Delivery Experience Impact
+
+Delivery reliability is a clear customer experience bottleneck. Late deliveries had a much lower average review score and a much higher negative review rate.
 
 | Delivery Group | Orders | Avg Review Score | Negative Review Rate |
 |---|---:|---:|---:|
-| Non-late delivery | 89,936 | 4.21 | 11.32% |
-| Late delivery | 6,534 | 2.33 | 61.32% |
+| Non-late Delivery | 89,936 | **4.21** | **11.32%** |
+| Late Delivery | 6,534 | **2.33** | **61.32%** |
 
-The simulated A/B test showed that the intent-aware recommendation strategy performed better than the popularity-based baseline:
+Business implication: recommendation ranking should not only optimise for product popularity. Seller delivery reliability should also be included as a ranking signal.
 
-| Metric | Control | Treatment | Uplift |
-|---|---:|---:|---:|
-| CTR | 19.42% | 22.76% | +17.2% |
-| Inquiry Rate | 12.70% | 16.32% | +28.5% |
-| Purchase Rate | 10.32% | 13.56% | +31.4% |
-| Revenue per User | 9.10 | 13.18 | +44.9% |
+### 🏆 AB Test Results: Intent-Aware vs. Popularity Baseline
 
-Two-proportion z-tests showed statistically significant improvements in CTR, inquiry rate, and purchase rate at the 5% level. A Welch's t-test also showed a significant improvement in revenue per user.
+The intent-aware strategy generated statistically significant full-funnel growth.
+
+| Metric | Control: Popularity | Treatment: Intent-Aware | Incremental Lift | Significance |
+|---|---:|---:|---:|:---:|
+| **CTR** | 19.42% | 22.76% | **+17.2%** | ✅ p < 0.05 |
+| **Inquiry Rate** | 12.70% | 16.32% | **+28.5%** | ✅ p < 0.05 |
+| **Purchase Rate** | 10.32% | 13.56% | **+31.4%** | ✅ p < 0.05 |
+| **Revenue / User** | 9.10 | 13.18 | **+44.9%** | ✅ p < 0.05 |
+
+The strongest lift appeared in revenue per user, which suggests that the treatment strategy did more than generate extra clicks. It improved deeper funnel outcomes and commercial value.
 
 ---
 
 ## Tableau Dashboards
 
-Three Tableau dashboards were created to present the final results.
+Three Tableau dashboards were created to present the final results as stakeholder-facing outputs.
 
-- [Dashboard 1: Executive Overview](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/Dashboard1ExecutiveOverviewDashboard?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
-- [Dashboard 2: User Intent & Lead Quality](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/UserIntentLeadQuality?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
-- [Dashboard 3: Recommendation A/B Test Performance](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/Dashboard3RecommendationABTestPerformance?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
+| Dashboard | Purpose | Link |
+|---|---|---|
+| **Dashboard 1: Executive Overview** | Marketplace KPIs, GMV trend, top categories, top sellers, and AB test uplift | [View Dashboard](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/Dashboard1ExecutiveOverviewDashboard?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link) |
+| **Dashboard 2: User Intent & Lead Quality** | Intent distribution, sentiment, lead score distribution, and high-intent rate by category and user segment | [View Dashboard](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/UserIntentLeadQuality?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link) |
+| **Dashboard 3: Recommendation AB Test Performance** | Control vs. treatment comparison, uplift metrics, purchase rate by user segment, and product diversity trade-off | [View Dashboard](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/Dashboard3RecommendationABTestPerformance?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link) |
 
 Dashboard screenshots are stored in:
 
 ```text
-/dashboard/tableau_screenshots/
+dashboard/tableau_screenshots/
 ```
+
+All Tableau Public links are also listed in [`dashboard/tableau_links.md`](dashboard/tableau_links.md).
 
 ---
 
@@ -178,7 +243,7 @@ AI-lead-generation-recommendation-analytics/
 │   └── 07_ab_test_evaluation.ipynb
 │
 ├── outputs/
-│   ├── tables/                      # SQL, funnel, intent, recommendation, and A/B test outputs
+│   ├── tables/                      # SQL, funnel, intent, recommendation, and AB test outputs
 │   └── model_results/               # Lead scoring model metrics and feature importance
 │
 ├── dashboard/
@@ -204,18 +269,53 @@ AI-lead-generation-recommendation-analytics/
 - [Executive Summary](report/executive_summary.md)
 - [Full Project Report](report/project_report.md)
 - [Data Dictionary](report/data_dictionary.md)
+- [Tableau Dashboard Links](dashboard/tableau_links.md)
 
 ---
 
-## Limitations
+## How to Run
 
-This project uses public transaction data rather than real platform clickstream data. User events, intent labels, lead scores, recommendation outcomes, and A/B test results are generated using transparent and reproducible business assumptions.
+1. Clone the repository.
 
-The funnel should be interpreted as a simulated engagement funnel around observed purchases, not as a real acquisition funnel with both converted and non-converted users.
+```bash
+git clone https://github.com/Raina-Hong/AI-lead-generation-recommendation-analytics.git
+cd AI-lead-generation-recommendation-analytics
+```
 
-The lead scoring model has near-perfect performance because the high-intent target was created from rule-based logic. The model is therefore best understood as a way to automate the scoring framework, not as a production predictive model.
+2. Install dependencies.
 
-The A/B test is simulated. It demonstrates experiment design and evaluation logic, but it does not represent a live production experiment.
+```bash
+pip install -r requirements.txt
+```
+
+3. Run the notebooks in order.
+
+```text
+notebook/01_data_understanding_and_cleaning.ipynb
+notebook/02_sql_business_analysis.ipynb
+notebook/03_user_funnel_analysis.ipynb
+notebook/04_llm_intent_classification.ipynb
+notebook/05_lead_scoring_model.ipynb
+notebook/06_recommendation_strategy.ipynb
+notebook/07_ab_test_evaluation.ipynb
+```
+
+4. Open Tableau dashboards using the links in [`dashboard/tableau_links.md`](dashboard/tableau_links.md).
+
+---
+
+## Production Considerations
+
+This project uses synthetic data generation techniques to bridge the gap between public transaction records and dynamic user behaviour. In a real production environment, the same workflow could be extended with live clickstream data, impression logs, non-converted sessions, and real recommendation exposure data.
+
+Several production topics would need further work:
+
+- **Cold-start handling:** new users, new sellers, and new products would need fallback strategies.
+- **Latency:** lead scoring and recommendation ranking would need to run fast enough for real-time or near-real-time use cases.
+- **Data drift:** user behaviour, seller reliability, and product demand may change over time.
+- **Catalog exposure and seller fairness:** relevance should be balanced with product diversity and fair exposure across sellers.
+- **Cannibalization risk:** incremental lift should be measured against whether recommendations shift demand from already high-performing products instead of creating new value.
+- **Model governance:** if LLM-based review classification is added, cost, privacy, consistency, and auditability would need to be managed.
 
 ---
 
@@ -223,11 +323,12 @@ The A/B test is simulated. It demonstrates experiment design and evaluation logi
 
 - Python data cleaning and feature engineering
 - SQL business analysis with DuckDB
+- Synthetic event pipeline design
 - Funnel analysis
 - Customer intent segmentation
 - Lead scoring framework design
-- Classification model development
+- Machine learning for rule automation and feature importance analysis
 - Recommendation strategy design
-- A/B test simulation and statistical testing
+- AB test design and statistical testing
 - Tableau dashboard design
 - Business reporting and analytical storytelling
