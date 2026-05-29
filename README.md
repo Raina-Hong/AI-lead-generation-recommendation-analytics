@@ -177,23 +177,6 @@ AI-lead-generation-recommendation-analytics/
 - Jupyter Notebook
 - Git/GitHub
 
-## How to Run
-
-Install the required packages:
-
-```bash
-pip install -r requirements.txt
-```
-
-Run the notebooks in order from the `notebook/` folder:
-
-1. `01_data_understanding_and_cleaning.ipynb`
-2. `02_sql_business_analysis.ipynb`
-3. `03_user_funnel_analysis.ipynb`
-4. `04_llm_intent_classification.ipynb`
-5. `05_lead_scoring_model.ipynb`
-6. `06_recommendation_strategy.ipynb`
-7. `07_ab_test_evaluation.ipynb`
 
 ## Limitations
 
