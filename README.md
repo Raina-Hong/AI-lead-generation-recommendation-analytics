@@ -270,7 +270,6 @@ AI-lead-generation-recommendation-analytics/
 ├── .gitignore
 ```
 
-```markdown
 The `notebook/` folder documents the full analytical workflow, including data exploration, SQL analysis, funnel construction, LLM-style intent classification, lead scoring, recommendation strategy design, and A/B test evaluation.
 
 The `src/` folder contains modular Python implementations of the core pipeline components. These scripts refactor the main logic into reusable modules, including transaction cleaning, synthetic behavioural event generation, intent feature extraction, lead scoring, and recommendation ranking.
