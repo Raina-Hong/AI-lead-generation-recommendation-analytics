@@ -1,6 +1,6 @@
 # AI-Powered Lead Generation & Recommendation Analytics Report
 
-[🔙 Back to Project Repository](../README.md) | [📊 View Tableau Dashboards](../dashboard/tableau_links.md) | [📂 Browse Notebooks](../notebooks/) | [📘 Data Dictionary](data_dictionary.md)
+[🔙 Back to Project Repository](../README.md) | [📊 View Tableau Dashboards](../dashboard/tableau_links.md) | [📂 Browse Notebooks](../notebook/) | [📘 Data Dictionary](data_dictionary.md)
 
 ![Python](https://img.shields.io/badge/Python-Data%20Analysis-blue)
 ![SQL](https://img.shields.io/badge/SQL-DuckDB-lightgrey)
