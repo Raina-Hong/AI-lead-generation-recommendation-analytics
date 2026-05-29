@@ -312,7 +312,6 @@ Because this experiment is simulated, the results should be read as an experimen
 
 Three Tableau dashboards were created to turn the analysis into stakeholder-facing outputs. The dashboards are not only visual summaries. Each one is designed to answer a specific business question: how the marketplace performs overall, which users should be prioritised, and whether the intent-aware recommendation strategy creates measurable business value.
 
----
 
 ### 11.1 Dashboard 1: Executive Overview
 
@@ -349,8 +348,6 @@ This is the most important chart for business stakeholders because it links the 
 
 **Dashboard insight:** the marketplace has strong transaction volume, clear category concentration, and enough business scale to justify recommendation optimisation. The experiment result suggests that intent-aware recommendation is worth further testing because it improves both engagement and revenue-related metrics.
 
----
-
 ### 11.2 Dashboard 2: User Intent & Lead Quality
 
 ![Dashboard 2: User Intent and Lead Quality](../dashboard/tableau_screenshots/dashboard_2_user_intent_lead_quality.png)
@@ -372,8 +369,6 @@ The high-intent rate by category chart highlights categories with strong lead qu
 The high-intent rate by user segment shows that **High Value users have the highest high-intent rate at 92.58%**, followed by **Medium Value users at 90.99%** and **Low Value users at 90.38%**. The difference is not extremely large, but it supports a segment-aware approach. High-value users should receive more personalised and reliable recommendations, while medium-value users may be a strong growth opportunity because they are close to becoming higher-value customers.
 
 **Dashboard insight:** the intent layer makes the user base more actionable. Instead of only knowing what users purchased, the business can understand why users may purchase, what concerns they have, and which segments should be prioritised. This supports more targeted recommendation, campaign planning, and lead follow-up strategy.
-
----
 
 ### 11.3 Dashboard 3: Recommendation A/B Test Performance
 
@@ -401,6 +396,7 @@ The product diversity chart shows an important trade-off. Category-preference re
 **Dashboard insight:** the intent-aware recommendation strategy produces stronger conversion and revenue outcomes in the simulated experiment. However, the product diversity result shows that performance optimisation should be balanced with product exposure diversity. A practical next step would be to add diversity constraints to the intent-aware ranking logic and then re-test whether the strategy can maintain conversion uplift while recommending a broader product set.
 
 All Tableau Public links are also listed in [`dashboard/tableau_links.md`](../dashboard/tableau_links.md).
+
 ---
 
 ## 12. Key Findings and Business Recommendations
