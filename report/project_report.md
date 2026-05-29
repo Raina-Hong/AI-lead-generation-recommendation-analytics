@@ -105,7 +105,16 @@ The main cleaning and feature engineering work included:
 - creating price bands;
 - preserving customer location, seller location, payment type, and review score for downstream analysis.
 
-The final order base contains business-ready fields such as `gmv`, `delivery_delay_days`, `late_delivery_flag`, `price_band`, `category`, `payment_type`, `review_score`, `seller_state`, and `customer_state`.
+
+- `gmv`
+- `delivery_delay_days`
+- `late_delivery_flag`
+- `price_band`
+- `category`
+- `payment_type`
+- `review_score`
+- `seller_state`
+- `customer_state`
 
 I also checked missing values before using the data for modelling and dashboards. Missing values were not treated mechanically. For example, missing review text was acceptable because review score still provided a usable satisfaction signal, while missing delivery timestamps had to be handled carefully because delivery delay directly affected the fulfilment analysis.
 
@@ -162,7 +171,11 @@ This result changes how recommendation quality should be judged. A seller with s
 
 Lead generation analysis needs a behavioural journey, but the Olist dataset only provides confirmed transactions. I handled that gap by designing a **business-driven synthetic event pipeline** on top of the real order data.
 
-The goal was practical: recreate the type of engagement layer a marketplace would normally track before conversion. Instead of stopping at completed purchases, the workflow reconstructs a plausible path across `view`, `click`, `add_to_cart`, `inquiry`, and `purchase` events.
+The goal was practical: recreate the type of engagement layer a marketplace would normally track before conversion. Instead of stopping at completed purchases, the workflow reconstructs the following engagement journey:
+
+`view` → `click` → `add_to_cart` → `inquiry` → `purchase`
+
+This format makes the funnel logic easier to read and avoids ambiguity in the event sequence.
 
 <details>
 <summary><b>Expand: Synthetic funnel design assumptions</b></summary>
