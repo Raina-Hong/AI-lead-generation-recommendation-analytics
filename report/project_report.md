@@ -29,6 +29,8 @@
 
 ## 1. Introduction
 
+> **TL;DR:** Engineered a synthetic funnel on 96K+ Olist transactions and designed an intent-aware recommendation system. Evaluated via a simulated A/B test, the strategy drove a **+44.9% lift in ARPU** and **+31.4% in purchase rate** over popularity-based baselines. 
+
 In this project, I architected an end-to-end analytics workflow for e-commerce lead generation, customer intent analysis, recommendation strategy design, and experiment evaluation.
 
 The starting point was the public Olist Brazilian e-commerce dataset. It gives a solid transaction foundation: orders, customers, sellers, products, payments, reviews, and delivery information. What it does not provide is the front-end behavioural layer that a real marketplace would normally collect, such as product views, clicks, add-to-cart events, inquiries, or abandoned sessions.
@@ -45,7 +47,6 @@ The workflow is designed around four business questions:
 The final output is not just a notebook exercise. It includes cleaned analytical tables, SQL-based KPI analysis, a synthetic funnel, an explainable intent layer, lead score automation, recommendation strategy evaluation, A/B test analysis, and Tableau dashboards for stakeholder communication.
 
 > **Key takeaway:** I used a real transaction dataset to build the kind of analytical layer a marketplace would need before scaling lead generation and recommendation decisions.
-
 
 ## 2. Business Problem
 
