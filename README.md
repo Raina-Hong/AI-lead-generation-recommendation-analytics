@@ -230,8 +230,8 @@ AI-lead-generation-recommendation-analytics/
 │
 ├── data/
 │   ├── raw/                         # Original Olist datasets
-│   ├── processed/                   # Cleaned intermediate datasets
-│   └── final/                       # Final analytical tables for modelling and dashboards
+│   ├── processed/                   # Cleaned order-level dataset
+│   └── final/                       # Final analytical tables
 │
 ├── notebook/
 │   ├── 01_data_understanding_and_cleaning.ipynb
@@ -267,8 +267,7 @@ AI-lead-generation-recommendation-analytics/
 ├── main.py                          # Lightweight entry point showing how src modules are organised
 ├── README.md
 ├── requirements.txt
-├── .gitignore
-```
+└── .gitignore
 
 The `notebook/` folder documents the full analytical workflow, including data exploration, SQL analysis, funnel construction, LLM-style intent classification, lead scoring, recommendation strategy design, and A/B test evaluation.
 
