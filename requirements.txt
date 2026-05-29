@@ -1,1 +1,8 @@
-1
+pandas
+numpy
+duckdb
+scikit-learn
+scipy
+matplotlib
+jupyter
+notebook
