@@ -17,6 +17,10 @@ class IntentEngine:
         Extract features combining text sentiment (using review score as proxy here) 
         and behavioral depth.
         (Aligns with Notebook 04)
+        
+        # TODO (V2 Roadmap - TikTok LIVE Integration):
+        # 1. Replace rule-based sentiment with real-time Embedding Vector Search (e.g., using Qwen/Llama-3).
+        # 2. Integrate real-time chat velocity and live room watch duration from streaming pipelines.
         """
         logger.info("Extracting intent features from user behavior and reviews...")
         
