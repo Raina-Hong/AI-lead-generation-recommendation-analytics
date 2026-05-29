@@ -268,6 +268,7 @@ AI-lead-generation-recommendation-analytics/
 ├── README.md
 ├── requirements.txt
 └── .gitignore
+```
 
 The `notebook/` folder documents the full analytical workflow, including data exploration, SQL analysis, funnel construction, LLM-style intent classification, lead scoring, recommendation strategy design, and A/B test evaluation.
 
