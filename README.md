@@ -199,30 +199,6 @@ AI-lead-generation-recommendation-analytics/
 
 ---
 
-## How to Run
-
-Install the required Python packages:
-
-```bash
-pip install -r requirements.txt
-```
-
-Then run the notebooks in order:
-
-```text
-01_data_understanding_and_cleaning.ipynb
-02_sql_business_analysis.ipynb
-03_user_funnel_analysis.ipynb
-04_llm_intent_classification.ipynb
-05_lead_scoring_model.ipynb
-06_recommendation_strategy.ipynb
-07_ab_test_evaluation.ipynb
-```
-
-The notebooks generate cleaned data, final analytical tables, model results, and dashboard-ready CSV outputs.
-
----
-
 ## Documentation
 
 - [Executive Summary](report/executive_summary.md)
