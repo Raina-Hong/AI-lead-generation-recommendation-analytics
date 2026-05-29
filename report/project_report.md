@@ -105,6 +105,7 @@ The main cleaning and feature engineering work included:
 - creating price bands;
 - preserving customer location, seller location, payment type, and review score for downstream analysis.
 
+The final order base contains the following business-ready fields:
 
 - `gmv`
 - `delivery_delay_days`
