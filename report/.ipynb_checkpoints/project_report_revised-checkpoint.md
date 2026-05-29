@@ -310,17 +310,11 @@ Because this experiment is simulated, the results should be read as an experimen
 
 ## 11. Tableau Dashboard Analysis
 
-Three Tableau dashboards were created to turn the analysis into stakeholder-facing outputs. The dashboards are not only visual summaries. Each one is designed to answer a specific business question: how the marketplace performs overall, which users should be prioritised, and whether the intent-aware recommendation strategy creates measurable business value.
-
----
+Three Tableau dashboards were created to turn the analysis into stakeholder-facing outputs. The dashboards are not just visual summaries; each one answers a different business question.
 
 ### 11.1 Dashboard 1: Executive Overview
 
-![Dashboard 1: Executive Overview](../dashboard/tableau_screenshots/dashboard_1_executive_overview.png)
-
-**Interactive dashboard:** [View Dashboard 1 on Tableau Public](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/Dashboard1ExecutiveOverviewDashboard?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
-
-**Dashboard purpose:** provide a high-level business view of marketplace performance and connect the overall business context with the recommendation experiment result.
+**Dashboard purpose:** provide a high-level business view of marketplace performance and the commercial impact of the recommendation experiment.
 
 The dashboard starts with five KPI cards:
 
@@ -330,77 +324,64 @@ The dashboard starts with five KPI cards:
 - **139.90 AOV**
 - **4.09 average review score**
 
-These KPI cards give the viewer immediate context about the size, transaction value, and customer experience quality of the dataset. The dataset is large enough to support meaningful business analysis, while the average review score suggests that the marketplace is generally healthy from a customer satisfaction perspective.
+These KPI cards give the viewer immediate context about the size and quality of the dataset.
 
-The monthly GMV trend shows that GMV increased from late 2016 into 2017 and remained at a higher level through much of 2018. This matters because the project is not based on a single-month snapshot. The data covers a long enough period to observe marketplace growth, seasonal movement, and category-level commercial patterns.
+The monthly GMV trend shows that GMV increased from late 2016 into 2017 and remained at a higher level through much of 2018. The line chart is useful because it shows that the marketplace is not a one-month sample; it has enough historical coverage to support trend analysis.
 
-The category chart shows that GMV is concentrated in several strong categories. **Health Beauty** is the largest category at around **1.41M GMV**, followed by **Watches Gifts**, **Bed Bath Table**, **Sports Leisure**, and **Computers Accessories**. This indicates that recommendation and campaign design should not treat all categories equally. High-GMV categories are natural candidates for commercial testing because small improvements in conversion could create a larger revenue impact.
+The category chart shows that GMV is concentrated in several strong categories. **Health Beauty** is the largest category at around **1.41M GMV**, followed by **Watches Gifts**, **Bed Bath Table**, **Sports Leisure**, and **Computers Accessories**. This helps identify which categories should receive more attention in recommendation testing and campaign planning.
 
-The seller chart shows that the top sellers generate meaningful GMV, but their individual contribution is smaller than the leading categories. The top seller generated around **247K GMV**. This suggests that category-level strategy may be more scalable than relying only on a few individual sellers. For a marketplace business, this is an important distinction: recommendation strategy should balance seller performance, category demand, and user intent rather than simply promote the top sellers.
+The seller chart shows that top sellers generate meaningful but relatively smaller individual GMV compared with top categories. The leading seller has around **247K GMV**. This suggests that category-level strategy may be more important than relying on a few individual sellers only.
 
-The A/B uplift chart at the bottom connects the executive overview directly to the recommendation experiment. The intent-aware recommendation strategy improved:
+The A/B uplift chart at the bottom connects the business overview directly to the experiment result. It shows that the intent-aware recommendation strategy improved:
 
 - **CTR by 17.2%**
 - **Inquiry rate by 28.5%**
 - **Purchase rate by 31.4%**
 - **Revenue per user by 44.9%**
 
-This is the most important chart for business stakeholders because it links the analytics workflow to measurable business outcomes. The uplift is not limited to early engagement. The largest improvement appears in **revenue per user**, which suggests that intent-aware recommendation has stronger commercial potential than a simple popularity-based approach.
-
-**Dashboard insight:** the marketplace has strong transaction volume, clear category concentration, and enough business scale to justify recommendation optimisation. The experiment result suggests that intent-aware recommendation is worth further testing because it improves both engagement and revenue-related metrics.
-
----
+**Dashboard insight:** the marketplace has strong transaction volume and category concentration, and the simulated experiment suggests that intent-aware recommendation can improve not only engagement but also revenue. For business users, this dashboard answers the question: *Is this recommendation strategy worth further testing?*
 
 ### 11.2 Dashboard 2: User Intent & Lead Quality
 
-![Dashboard 2: User Intent and Lead Quality](../dashboard/tableau_screenshots/dashboard_2_user_intent_lead_quality.png)
+**Dashboard purpose:** explain who the high-intent users are and how intent classification supports lead prioritisation.
 
-**Interactive dashboard:** [View Dashboard 2 on Tableau Public](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/UserIntentLeadQuality?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
+The purchase intent chart shows that most records are classified as high intent. There are **99,674 high-intent records**, compared with **7,591 low-intent records** and **5,385 medium-intent records**. This reflects the fact that the source data is transaction-heavy and many records are linked to completed purchases.
 
-**Dashboard purpose:** explain how the intent classification and lead scoring layer transforms raw transaction, review, delivery, and behavioural signals into business-readable lead quality indicators.
+The sentiment chart shows that positive sentiment dominates the dataset, with **88,201 positive records**, compared with **16,510 negative records** and **7,939 neutral records**. This is consistent with the average review score of **4.09** shown in Dashboard 1.
 
-The purchase intent chart shows that most records are classified as high intent. There are **99,674 high-intent records**, compared with **7,591 low-intent records** and **5,385 medium-intent records**. This reflects the transaction-heavy nature of the source data. Since the original public dataset mainly contains completed orders, many records naturally show strong purchase-related signals.
+The intent category breakdown gives more detail than sentiment alone. The largest group is **Ready to Purchase** with **51,869 records**. This is followed by **Delivery Concern** with **21,995 records** and **Price Sensitive** with **20,822 records**. This is useful because negative or cautious intent is not always bad. For example, delivery-concern users may still be valuable if the platform can reassure them about fulfilment.
 
-The sentiment chart shows that positive sentiment dominates the dataset, with **88,201 positive records**, compared with **16,510 negative records** and **7,939 neutral records**. This is consistent with the average review score of **4.09** in the executive dashboard. From a business perspective, this means the platform has a strong base of satisfied customers, but there is still a visible negative experience segment that should not be ignored.
+The lead score distribution shows that a large number of records are concentrated near the top score range. This indicates that the rule-based lead scoring framework is designed to prioritise users who show strong purchase intent, positive review experience, and deeper engagement signals.
 
-The intent category breakdown adds more business meaning than sentiment alone. The largest group is **Ready to Purchase** with **51,869 records**, followed by **Delivery Concern** with **21,995 records** and **Price Sensitive** with **20,822 records**. This is useful because customer intent is not simply positive or negative. A delivery-concern user may still be commercially valuable if the platform can improve fulfilment confidence. A price-sensitive user may still convert if the recommendation is paired with the right discount, bundle, or value message.
+The high-intent rate by category chart highlights categories with strong lead quality. Categories such as **computers**, **small appliances home oven**, and **musical instruments** have high-intent rates above **90%**. This suggests that some categories may be especially suitable for targeted recommendation or campaign design.
 
-The lead score distribution shows that many records are concentrated near the top score range. This is expected because the scoring engine is designed to prioritise users with strong purchase intent, positive experience signals, and deeper behavioural engagement. Rather than treating this as a pure prediction task, the lead score should be read as a structured prioritisation layer. It helps the business decide which users should receive stronger recommendation exposure or follow-up actions.
+The high-intent rate by user segment shows that **High Value users have the highest high-intent rate at 92.58%**, followed by Medium Value users at **90.99%** and Low Value users at **90.38%**. The difference is not huge, but it still supports segment-aware lead prioritisation.
 
-The high-intent rate by category chart highlights categories with strong lead quality. Categories such as **Computers**, **Small Appliances Home Oven**, and **Musical Instruments** have high-intent rates above **90%**. These categories may be suitable for targeted campaigns because users in these categories show stronger intent signals. However, category size should also be considered. A small category with a very high intent rate may not create the same revenue impact as a larger category with slightly lower intent quality.
-
-The high-intent rate by user segment shows that **High Value users have the highest high-intent rate at 92.58%**, followed by **Medium Value users at 90.99%** and **Low Value users at 90.38%**. The difference is not extremely large, but it supports a segment-aware approach. High-value users should receive more personalised and reliable recommendations, while medium-value users may be a strong growth opportunity because they are close to becoming higher-value customers.
-
-**Dashboard insight:** the intent layer makes the user base more actionable. Instead of only knowing what users purchased, the business can understand why users may purchase, what concerns they have, and which segments should be prioritised. This supports more targeted recommendation, campaign planning, and lead follow-up strategy.
-
----
+**Dashboard insight:** the intent layer turns raw review, delivery, and behavioural signals into business-readable lead quality indicators. This dashboard answers the question: *Which users and categories should the business prioritise for targeted recommendation or follow-up?*
 
 ### 11.3 Dashboard 3: Recommendation A/B Test Performance
 
-![Dashboard 3: Recommendation A/B Test Performance](../dashboard/tableau_screenshots/dashboard_3_recommendation_ab_test.png)
+**Dashboard purpose:** compare the control and treatment strategies and evaluate whether intent-aware recommendation improves business outcomes.
 
-**Interactive dashboard:** [View Dashboard 3 on Tableau Public](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/Dashboard3RecommendationABTestPerformance?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
-
-**Dashboard purpose:** compare the control and treatment recommendation strategies and evaluate whether intent-aware recommendation improves business outcomes across the funnel.
-
-The top four charts compare the control group and treatment group directly:
+The top four charts compare control and treatment performance:
 
 - CTR improved from **19.42%** to **22.76%**
 - Inquiry rate improved from **12.70%** to **16.32%**
 - Purchase rate improved from **10.32%** to **13.56%**
 - Revenue per user improved from **9.10** to **13.18**
 
-These charts make the experiment result easy to understand. The treatment group performs better across the full funnel, not only on one isolated metric. This is important because a recommendation strategy that only improves clicks may not be commercially valuable. In this case, the treatment group also improves inquiry, purchase, and revenue per user.
+These charts make the experiment result easy to read. The treatment group performs better across the full funnel, not just on one metric.
 
-The uplift chart summarises the relative improvement by metric. The largest uplift is **revenue per user at 44.88%**, followed by **purchase rate at 31.40%**, **inquiry rate at 28.50%**, and **CTR at 17.20%**. The ordering is important. It suggests that intent-aware recommendation creates stronger value at deeper funnel stages, where business impact is more direct.
+The uplift chart summarises the improvement by metric. The largest uplift is revenue per user at **44.88%**, followed by purchase rate at **31.40%**, inquiry rate at **28.50%**, and CTR at **17.20%**. This ordering is important. It suggests that the strategy creates stronger business impact at deeper funnel stages.
 
-The purchase rate by user segment chart shows that the treatment group outperforms the control group across all user value segments. **Medium Value users improved from 10.47% to 14.65%**, **High Value users improved from 11.26% to 14.22%**, and **Low Value users improved from 9.50% to 11.97%**. This suggests that the treatment effect is not limited to one segment. In particular, the strong improvement among Medium Value users indicates that this group may be a good target for growth campaigns.
+The purchase rate by user segment chart shows that the treatment group outperforms the control group across all user value segments. For example, Medium Value users improve from **10.47%** to **14.65%**, High Value users improve from **11.26%** to **14.22%**, and Low Value users improve from **9.50%** to **11.97%**. This suggests that the treatment effect is not limited to only one segment.
 
-The product diversity chart shows an important trade-off. Category-preference recommendation has the highest product diversity rate at **2.10%**, while intent-aware recommendation has **0.20%**, and popularity-based recommendation has only **0.04%**. This means that intent-aware recommendation improves conversion and revenue metrics, but it may still concentrate exposure on a limited number of products. Before being treated as a complete production recommendation strategy, it should include diversity-aware re-ranking or exposure constraints.
+The product diversity chart shows an important trade-off. Category-preference recommendation has the highest product diversity rate at **2.10%**, while intent-aware recommendation has **0.20%**, and popularity-based recommendation has only **0.04%**. This means the intent-aware strategy improves performance, but it still needs a diversity control before it can be treated as a complete recommendation solution.
 
-**Dashboard insight:** the intent-aware recommendation strategy produces stronger conversion and revenue outcomes in the simulated experiment. However, the product diversity result shows that performance optimisation should be balanced with product exposure diversity. A practical next step would be to add diversity constraints to the intent-aware ranking logic and then re-test whether the strategy can maintain conversion uplift while recommending a broader product set.
+**Dashboard insight:** the intent-aware recommendation strategy produces stronger simulated conversion and revenue outcomes, but future optimisation should add diversity constraints so that performance improvement does not come at the cost of overly narrow product exposure.
 
-All Tableau Public links are also listed in [`dashboard/tableau_links.md`](../dashboard/tableau_links.md).
+Dashboard links are available in `dashboard/tableau_links.md`.
+
 ---
 
 ## 12. Key Findings and Business Recommendations
