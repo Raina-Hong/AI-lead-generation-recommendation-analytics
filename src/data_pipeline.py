@@ -1,68 +1,234 @@
 # src/data_pipeline.py
+
 import pandas as pd
 import numpy as np
-from typing import Tuple
-from src.utils import logger, execute_query
+from typing import Optional
+from src.utils import logger
+
 
 class DataPipeline:
-    """Pipeline for Olist data cleaning and feature engineering."""
-    
-    def __init__(self, raw_data_path: str):
-        self.raw_data_path = raw_data_path
+    """
+    Pipeline for cleaning Olist transaction data and generating synthetic funnel events.
 
-    def clean_transactions(self, orders_df: pd.DataFrame, items_df: pd.DataFrame) -> pd.DataFrame:
+    Notes
+    -----
+    The original Olist dataset contains transactional order records but does not include
+    real front-end clickstream logs. Therefore, the funnel events generated here are
+    synthetic behavioural events designed for offline analytics and recommendation
+    strategy simulation.
+    """
+
+    def __init__(self, raw_data_path: str = "data/raw/", random_state: int = 42):
+        self.raw_data_path = raw_data_path
+        self.random_state = random_state
+        self.rng = np.random.default_rng(random_state)
+
+    def clean_transactions(
+        self,
+        orders_df: pd.DataFrame,
+        items_df: pd.DataFrame
+    ) -> pd.DataFrame:
         """
-        Clean order and item data, and calculate basic features like GMV.
-        (Aligns with Notebook 01)
+        Clean order and item data, then calculate basic transaction-level features.
+
+        Parameters
+        ----------
+        orders_df : pd.DataFrame
+            Raw orders table.
+        items_df : pd.DataFrame
+            Raw order items table.
+
+        Returns
+        -------
+        pd.DataFrame
+            Cleaned transaction-level table with GMV.
         """
         logger.info("Starting transaction cleaning process...")
-        
-        # Merge orders and order items
-        merged_df = pd.merge(orders_df, items_df, on='order_id', how='inner')
-        
-        # Calculate GMV (Gross Merchandise Value)
-        merged_df['gmv'] = merged_df['price'] + merged_df['freight_value']
-        
-        # Basic missing value handling
-        clean_df = merged_df.dropna(subset=['order_status', 'customer_id'])
-        
+
+        required_order_cols = {"order_id", "order_status", "customer_id"}
+        required_item_cols = {"order_id", "product_id", "price", "freight_value"}
+
+        missing_order_cols = required_order_cols - set(orders_df.columns)
+        missing_item_cols = required_item_cols - set(items_df.columns)
+
+        if missing_order_cols:
+            raise ValueError(f"orders_df is missing required columns: {missing_order_cols}")
+
+        if missing_item_cols:
+            raise ValueError(f"items_df is missing required columns: {missing_item_cols}")
+
+        merged_df = pd.merge(
+            orders_df,
+            items_df,
+            on="order_id",
+            how="inner"
+        )
+
+        merged_df["price"] = pd.to_numeric(merged_df["price"], errors="coerce")
+        merged_df["freight_value"] = pd.to_numeric(
+            merged_df["freight_value"],
+            errors="coerce"
+        )
+
+        merged_df["gmv"] = merged_df["price"] + merged_df["freight_value"]
+
+        clean_df = merged_df.dropna(
+            subset=[
+                "order_id",
+                "order_status",
+                "customer_id",
+                "product_id",
+                "price",
+                "freight_value",
+                "gmv"
+            ]
+        ).copy()
+
         logger.info(f"Cleaned transactions shape: {clean_df.shape}")
         return clean_df
 
-    def generate_synthetic_funnel(self, clean_transactions_df: pd.DataFrame) -> pd.DataFrame:
+    def generate_synthetic_funnel(
+        self,
+        clean_transactions_df: pd.DataFrame,
+        non_purchase_multiplier: float = 0.30
+    ) -> pd.DataFrame:
         """
-        Generate synthetic funnel events based on real orders 
-        (View -> Click -> Add to Cart -> Inquiry -> Purchase).
-        (Aligns with Notebook 03, simplified demonstration here)
+        Generate synthetic behavioural funnel events.
+
+        The method creates two types of sessions:
+
+        1. Purchase sessions based on real orders:
+           view -> click -> add_to_cart -> inquiry -> purchase
+
+        2. Non-purchase sessions sampled from existing users and products:
+           view/click/add_to_cart/inquiry without purchase
+
+        This makes the simulated funnel more realistic than treating every user
+        interaction as a purchase journey.
+
+        Parameters
+        ----------
+        clean_transactions_df : pd.DataFrame
+            Cleaned transaction-level table.
+        non_purchase_multiplier : float
+            Number of synthetic non-purchase sessions as a proportion of real
+            transaction rows. For example, 0.30 means adding non-purchase sessions
+            equal to 30% of the number of transaction rows.
+
+        Returns
+        -------
+        pd.DataFrame
+            Synthetic behavioural event log with user_id, product_id, and event_type.
         """
-        logger.info("Generating synthetic behavioral funnel...")
-        
+        logger.info("Generating synthetic behavioural funnel...")
+
+        required_cols = {"customer_id", "product_id"}
+
+        missing_cols = required_cols - set(clean_transactions_df.columns)
+        if missing_cols:
+            raise ValueError(
+                f"clean_transactions_df is missing required columns: {missing_cols}"
+            )
+
         events = []
+
         for _, row in clean_transactions_df.iterrows():
-            user_id = row['customer_id'] # Assuming this acts as user_id
-            product_id = row['product_id']
-            
-            # This is a simplified probabilistic generation logic
-            if np.random.rand() > 0.1: # 90% probability of view
-                events.append({'user_id': user_id, 'product_id': product_id, 'event_type': 'view'})
-            if np.random.rand() > 0.3: # 70% probability of click
-                events.append({'user_id': user_id, 'product_id': product_id, 'event_type': 'click'})
-            if np.random.rand() > 0.5: # 50% probability of add_to_cart
-                events.append({'user_id': user_id, 'product_id': product_id, 'event_type': 'add_to_cart'})
-            if np.random.rand() > 0.7: # 30% probability of inquiry
-                events.append({'user_id': user_id, 'product_id': product_id, 'event_type': 'inquiry'})
-            
-            # Real existing orders must have a purchase event
-            events.append({'user_id': user_id, 'product_id': product_id, 'event_type': 'purchase'})
-            
+            user_id = row["customer_id"]
+            product_id = row["product_id"]
+
+            # Existing orders are treated as completed purchase sessions.
+            events.append(
+                {"user_id": user_id, "product_id": product_id, "event_type": "view"}
+            )
+
+            if self.rng.random() < 0.85:
+                events.append(
+                    {"user_id": user_id, "product_id": product_id, "event_type": "click"}
+                )
+
+            if self.rng.random() < 0.65:
+                events.append(
+                    {
+                        "user_id": user_id,
+                        "product_id": product_id,
+                        "event_type": "add_to_cart"
+                    }
+                )
+
+            if self.rng.random() < 0.30:
+                events.append(
+                    {
+                        "user_id": user_id,
+                        "product_id": product_id,
+                        "event_type": "inquiry"
+                    }
+                )
+
+            events.append(
+                {"user_id": user_id, "product_id": product_id, "event_type": "purchase"}
+            )
+
+        # Add synthetic non-purchase sessions to avoid a fully purchase-biased funnel.
+        n_non_purchase = int(len(clean_transactions_df) * non_purchase_multiplier)
+
+        if n_non_purchase > 0 and not clean_transactions_df.empty:
+            sampled_users = self.rng.choice(
+                clean_transactions_df["customer_id"].dropna().unique(),
+                size=n_non_purchase,
+                replace=True
+            )
+            sampled_products = self.rng.choice(
+                clean_transactions_df["product_id"].dropna().unique(),
+                size=n_non_purchase,
+                replace=True
+            )
+
+            for user_id, product_id in zip(sampled_users, sampled_products):
+                events.append(
+                    {"user_id": user_id, "product_id": product_id, "event_type": "view"}
+                )
+
+                if self.rng.random() < 0.50:
+                    events.append(
+                        {
+                            "user_id": user_id,
+                            "product_id": product_id,
+                            "event_type": "click"
+                        }
+                    )
+
+                if self.rng.random() < 0.20:
+                    events.append(
+                        {
+                            "user_id": user_id,
+                            "product_id": product_id,
+                            "event_type": "add_to_cart"
+                        }
+                    )
+
+                if self.rng.random() < 0.10:
+                    events.append(
+                        {
+                            "user_id": user_id,
+                            "product_id": product_id,
+                            "event_type": "inquiry"
+                        }
+                    )
+
         funnel_df = pd.DataFrame(events)
+
+        if not funnel_df.empty:
+            funnel_df["event_id"] = range(1, len(funnel_df) + 1)
+
         logger.info(f"Synthetic funnel generated with shape: {funnel_df.shape}")
         return funnel_df
 
+
 if __name__ == "__main__":
-    # Test code execution
-    pipeline = DataPipeline(raw_data_path="data/raw/")
-    # Note: You need to pass real DataFrames here
-    # Example:
-    # df = pipeline.clean_transactions(orders_df, items_df)
-    # funnel = pipeline.generate_synthetic_funnel(df)
+    pipeline = DataPipeline(raw_data_path="data/raw/", random_state=42)
+
+    # Example usage:
+    # orders_df = pd.read_csv("data/raw/olist_orders_dataset.csv")
+    # items_df = pd.read_csv("data/raw/olist_order_items_dataset.csv")
+    # clean_df = pipeline.clean_transactions(orders_df, items_df)
+    # funnel_df = pipeline.generate_synthetic_funnel(clean_df)

@@ -1,91 +1,383 @@
 # src/recommendation_strategy.py
 
-# src/recommendation_strategy.py
 import pandas as pd
-import random  
-from typing import List, Dict
+import numpy as np
+from typing import List, Dict, Optional
 from src.utils import logger
 
-class RecommendationSystem:
-    """System providing multiple recommendation strategies."""
-    
-    def __init__(self, item_catalog: pd.DataFrame, interaction_history: pd.DataFrame):
-        self.item_catalog = item_catalog
-        self.interaction_history = interaction_history
 
-    def generate_popularity_recs(self, user_id: str, top_k: int = 5) -> List[str]:
+class RecommendationSystem:
+    """
+    System providing baseline and intent-aware recommendation strategies.
+
+    The recommendation logic is designed for offline analytics demonstration:
+    - Control group: popularity-based ranking
+    - Treatment group: intent-aware recommendation with seller quality and SMB exploration
+    """
+
+    def __init__(
+        self,
+        item_catalog: pd.DataFrame,
+        interaction_history: pd.DataFrame,
+        random_state: int = 42
+    ):
+        self.item_catalog = item_catalog.copy()
+        self.interaction_history = interaction_history.copy()
+        self.random_state = random_state
+        self.rng = np.random.default_rng(random_state)
+
+        self._validate_base_inputs()
+
+    def _validate_base_inputs(self) -> None:
         """
-        Baseline strategy: Popularity-based recommendations derived from historical sales.
-        (Aligns with Control group)
+        Validate the minimum columns required for recommendation generation.
         """
-        # Calculate global best-selling items
-        popular_items = self.interaction_history[
-            self.interaction_history['event_type'] == 'purchase'
-        ]['product_id'].value_counts().head(top_k).index.tolist()
-        
-        logger.debug(f"Generated popularity recs for user {user_id}")
+        if "product_id" not in self.item_catalog.columns:
+            raise ValueError("item_catalog must contain a 'product_id' column.")
+
+        required_history_cols = {"product_id", "event_type"}
+        missing_history_cols = required_history_cols - set(self.interaction_history.columns)
+
+        if missing_history_cols:
+            raise ValueError(
+                f"interaction_history is missing required columns: {missing_history_cols}"
+            )
+
+    def _has_columns(self, columns: List[str]) -> bool:
+        """
+        Check whether item_catalog contains all required columns.
+        """
+        return all(col in self.item_catalog.columns for col in columns)
+
+    def generate_popularity_recs(
+        self,
+        user_id: str,
+        top_k: int = 5
+    ) -> List[str]:
+        """
+        Baseline strategy: recommend globally popular products based on purchase history.
+
+        Parameters
+        ----------
+        user_id : str
+            User identifier. Kept for interface consistency.
+        top_k : int
+            Number of products to recommend.
+
+        Returns
+        -------
+        List[str]
+            Recommended product IDs.
+        """
+        purchase_history = self.interaction_history[
+            self.interaction_history["event_type"] == "purchase"
+        ]
+
+        if purchase_history.empty:
+            logger.warning(
+                "No purchase events found. Falling back to item catalog order."
+            )
+            return self.item_catalog["product_id"].head(top_k).tolist()
+
+        popular_items = (
+            purchase_history["product_id"]
+            .value_counts()
+            .head(top_k)
+            .index
+            .tolist()
+        )
+
+        # If fewer than top_k purchased products exist, fill from catalog.
+        if len(popular_items) < top_k:
+            fallback_items = (
+                self.item_catalog[
+                    ~self.item_catalog["product_id"].isin(popular_items)
+                ]["product_id"]
+                .head(top_k - len(popular_items))
+                .tolist()
+            )
+            popular_items.extend(fallback_items)
+
+        logger.debug(f"Generated popularity recommendations for user {user_id}")
         return popular_items
 
-    def generate_intent_aware_recs(self, user_id: str, user_intent_score: float, top_k: int = 5) -> List[str]:
+    def _sample_smb_exploration_recs(
+        self,
+        top_k: int
+    ) -> Optional[List[str]]:
         """
-        Treatment strategy: Intent-aware recommendations.
-        Incorporates user lead scores, seller fulfillment quality, and SMB exploration.
+        Sample high-quality low-exposure products for SMB exploration.
+
+        Returns None if required columns are not available or no candidate exists.
         """
-        logger.debug(f"Generating intent-aware recs for user {user_id} with score {user_intent_score}")
-        
-        # --- Advanced logic: Traffic exploration / Empowering SMBs ---
-        # 10% probability to force-recommend high-rated but low-exposure long-tail/SMB products
-        if random.random() < 0.10: 
-            # Assuming sales_volume < 100 represents SMBs, and review_score >= 4.5 represents high quality
-            # Note: If your item_catalog lacks the 'seller_sales_volume' field, this serves purely as an architectural demonstration
-            if 'seller_sales_volume' in self.item_catalog.columns:
-                smb_candidates = self.item_catalog[
-                    (self.item_catalog['seller_sales_volume'] < 100) & 
-                    (self.item_catalog['seller_review_score'] >= 4.5)
-                ]
-                if not smb_candidates.empty:
-                    return smb_candidates.sample(min(top_k, len(smb_candidates)))['product_id'].tolist()
-        # -----------------------------------------------------------
-        
-        # 1. If user intent is high, recommend premium items with high CVR
+        required_cols = [
+            "seller_sales_volume",
+            "seller_review_score",
+            "product_id"
+        ]
+
+        if not self._has_columns(required_cols):
+            return None
+
+        smb_candidates = self.item_catalog[
+            (self.item_catalog["seller_sales_volume"] < 100)
+            & (self.item_catalog["seller_review_score"] >= 4.5)
+        ]
+
+        if smb_candidates.empty:
+            return None
+
+        sample_size = min(top_k, len(smb_candidates))
+
+        sampled_indices = self.rng.choice(
+            smb_candidates.index,
+            size=sample_size,
+            replace=False
+        )
+
+        return smb_candidates.loc[sampled_indices, "product_id"].tolist()
+
+    def generate_intent_aware_recs(
+        self,
+        user_id: str,
+        user_intent_score: float,
+        top_k: int = 5,
+        exploration_rate: float = 0.10
+    ) -> List[str]:
+        """
+        Treatment strategy: generate intent-aware recommendations.
+
+        Logic
+        -----
+        1. With a small exploration probability, recommend high-quality low-exposure
+           SMB products.
+        2. For high-intent users, recommend high-CVR products from reliable sellers.
+        3. For medium-intent users, recommend cost-effective products.
+        4. For low-intent users, fall back to popularity-based recommendations.
+
+        Parameters
+        ----------
+        user_id : str
+            User identifier.
+        user_intent_score : float
+            Lead score between 0 and 1.
+        top_k : int
+            Number of products to recommend.
+        exploration_rate : float
+            Probability of applying SMB exploration.
+
+        Returns
+        -------
+        List[str]
+            Recommended product IDs.
+        """
+        logger.debug(
+            f"Generating intent-aware recommendations for user {user_id} "
+            f"with score {user_intent_score}"
+        )
+
+        if not 0 <= user_intent_score <= 1:
+            raise ValueError("user_intent_score must be between 0 and 1.")
+
+        # SMB exploration layer.
+        if self.rng.random() < exploration_rate:
+            smb_recs = self._sample_smb_exploration_recs(top_k=top_k)
+            if smb_recs:
+                logger.debug(f"SMB exploration recommendations used for {user_id}")
+                return smb_recs
+
+        recs = []
+
+        # High-intent users: recommend high-CVR products from reliable sellers.
         if user_intent_score > 0.8:
-            # Filter out products from sellers with high late delivery rates
-            candidates = self.item_catalog[self.item_catalog['seller_late_rate'] < 0.1]
-            # Sort by product's historical conversion rate (CVR)
-            recs = candidates.sort_values(by='historical_cvr', ascending=False).head(top_k)['product_id'].tolist()
-        
-        # 2. If user is price-sensitive (moderate intent)
+            required_cols = [
+                "seller_late_rate",
+                "historical_cvr",
+                "product_id"
+            ]
+
+            if self._has_columns(required_cols):
+                candidates = self.item_catalog[
+                    self.item_catalog["seller_late_rate"] < 0.10
+                ]
+
+                if not candidates.empty:
+                    recs = (
+                        candidates
+                        .sort_values(by="historical_cvr", ascending=False)
+                        .head(top_k)["product_id"]
+                        .tolist()
+                    )
+
+            if not recs:
+                logger.warning(
+                    "High-intent recommendation candidates unavailable. "
+                    "Falling back to popularity strategy."
+                )
+                recs = self.generate_popularity_recs(user_id, top_k)
+
+        # Medium-intent users: recommend cost-effective products.
         elif 0.5 <= user_intent_score <= 0.8:
-            # Recommend cost-effective items or those with shipping subsidies
-            candidates = self.item_catalog[self.item_catalog['price_band'] == 'Low']
-            recs = candidates.sort_values(by='historical_sales', ascending=False).head(top_k)['product_id'].tolist()
-            
-        # 3. Fallback strategy
+            required_cols = [
+                "price_band",
+                "historical_sales",
+                "product_id"
+            ]
+
+            if self._has_columns(required_cols):
+                candidates = self.item_catalog[
+                    self.item_catalog["price_band"] == "Low"
+                ]
+
+                if not candidates.empty:
+                    recs = (
+                        candidates
+                        .sort_values(by="historical_sales", ascending=False)
+                        .head(top_k)["product_id"]
+                        .tolist()
+                    )
+
+            if not recs:
+                logger.warning(
+                    "Medium-intent recommendation candidates unavailable. "
+                    "Falling back to popularity strategy."
+                )
+                recs = self.generate_popularity_recs(user_id, top_k)
+
+        # Low-intent users: use conservative popularity-based fallback.
         else:
             recs = self.generate_popularity_recs(user_id, top_k)
-            
+
         return recs
 
-    def evaluate_ab_test(self, control_metrics: Dict, treatment_metrics: Dict):
+    def evaluate_ab_test(
+        self,
+        control_metrics: Dict[str, float],
+        treatment_metrics: Dict[str, float]
+    ) -> pd.DataFrame:
         """
-        Evaluate A/B test effects for different recommendation strategies.
-        Includes Revenue Lift and Guardrail Metrics evaluation.
+        Evaluate A/B test effects for recommendation strategies.
+
+        Parameters
+        ----------
+        control_metrics : Dict[str, float]
+            Metrics for the control group.
+        treatment_metrics : Dict[str, float]
+            Metrics for the treatment group.
+
+        Returns
+        -------
+        pd.DataFrame
+            Table containing metric, control, treatment, absolute delta, and uplift percentage.
         """
-        logger.info("Evaluating A/B Test Results...")
-        for metric in control_metrics.keys():
-            c_val = control_metrics[metric]
-            t_val = treatment_metrics[metric]
-            uplift = (t_val - c_val) / c_val * 100 if c_val > 0 else 0
-            logger.info(f"{metric}: Control={c_val}, Treatment={t_val}, Uplift={uplift:.2f}%")
-            
-        # --- Advanced logic: Guardrail Metrics monitoring and alerts ---
-        logger.info("--- Guardrail Metrics Check ---")
-        logger.info("Refund Rate: Control=2.1%, Treatment=2.2% (Delta: +0.1% -> SAFE)")
-        logger.info("SMB Seller Exposure Diversity: Control=12%, Treatment=18% (Delta: +6.0% -> IMPROVED)")
-        
+        logger.info("Evaluating A/B test results...")
+
+        results = []
+
+        common_metrics = set(control_metrics.keys()) & set(treatment_metrics.keys())
+
+        if not common_metrics:
+            raise ValueError(
+                "control_metrics and treatment_metrics do not share any metric names."
+            )
+
+        for metric in sorted(common_metrics):
+            control_value = control_metrics[metric]
+            treatment_value = treatment_metrics[metric]
+
+            absolute_delta = treatment_value - control_value
+            uplift_pct = (
+                absolute_delta / control_value * 100
+                if control_value != 0
+                else np.nan
+            )
+
+            results.append({
+                "metric": metric,
+                "control": control_value,
+                "treatment": treatment_value,
+                "absolute_delta": absolute_delta,
+                "uplift_pct": uplift_pct
+            })
+
+            logger.info(
+                f"{metric}: Control={control_value}, "
+                f"Treatment={treatment_value}, "
+                f"Uplift={uplift_pct:.2f}%"
+            )
+
+        results_df = pd.DataFrame(results)
+
+        return results_df
+
+    def check_guardrail_metrics(
+        self,
+        guardrail_metrics: Dict[str, Dict[str, float]]
+    ) -> pd.DataFrame:
+        """
+        Evaluate guardrail metrics such as refund rate or seller exposure diversity.
+
+        Expected input format
+        ---------------------
+        {
+            "refund_rate": {"control": 0.021, "treatment": 0.022},
+            "smb_exposure_diversity": {"control": 0.12, "treatment": 0.18}
+        }
+
+        Returns
+        -------
+        pd.DataFrame
+            Guardrail metric comparison table.
+        """
+        logger.info("Checking recommendation guardrail metrics...")
+
+        rows = []
+
+        for metric, values in guardrail_metrics.items():
+            if "control" not in values or "treatment" not in values:
+                raise ValueError(
+                    f"Guardrail metric '{metric}' must contain control and treatment values."
+                )
+
+            control_value = values["control"]
+            treatment_value = values["treatment"]
+            delta = treatment_value - control_value
+
+            rows.append({
+                "metric": metric,
+                "control": control_value,
+                "treatment": treatment_value,
+                "absolute_delta": delta
+            })
+
+        return pd.DataFrame(rows)
+
+
 if __name__ == "__main__":
-    # Mock execution
-    # cat_df = pd.DataFrame({'product_id': ['p1', 'p2'], 'seller_late_rate': [0.05, 0.2], 'historical_cvr': [0.1, 0.05]})
-    # hist_df = pd.DataFrame({'user_id': ['u1'], 'product_id': ['p1'], 'event_type': ['purchase']})
-    # rec_sys = RecommendationSystem(cat_df, hist_df)
-    # print(rec_sys.generate_intent_aware_recs('u1', 0.9))
+    # Example usage:
+    # item_catalog_df = pd.DataFrame({
+    #     "product_id": ["p1", "p2", "p3"],
+    #     "seller_late_rate": [0.05, 0.20, 0.03],
+    #     "historical_cvr": [0.12, 0.05, 0.10],
+    #     "price_band": ["High", "Low", "Low"],
+    #     "historical_sales": [120, 300, 180],
+    #     "seller_sales_volume": [80, 500, 60],
+    #     "seller_review_score": [4.6, 4.2, 4.8]
+    # })
+    #
+    # interaction_history_df = pd.DataFrame({
+    #     "user_id": ["u1", "u2", "u3"],
+    #     "product_id": ["p1", "p2", "p2"],
+    #     "event_type": ["purchase", "purchase", "view"]
+    # })
+    #
+    # rec_sys = RecommendationSystem(
+    #     item_catalog=item_catalog_df,
+    #     interaction_history=interaction_history_df
+    # )
+    #
+    # print(rec_sys.generate_intent_aware_recs("u1", 0.9))
+    # print(rec_sys.evaluate_ab_test(
+    #     control_metrics={"purchase_rate": 0.12, "revenue_per_user": 18.5},
+    #     treatment_metrics={"purchase_rate": 0.15, "revenue_per_user": 24.0}
+    # ))

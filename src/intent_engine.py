@@ -1,75 +1,255 @@
 # src/intent_engine.py
+
 import pandas as pd
+import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-import joblib
+from sklearn.exceptions import NotFittedError
 from src.utils import logger
 
-class IntentEngine:
-    """Engine for extracting user intent and automating lead scoring."""
-    
-    def __init__(self, model_path: str = None):
-        self.model = joblib.load(model_path) if model_path else RandomForestClassifier(n_estimators=100, random_state=42)
-        self.features = ['review_score', 'delivery_delay_days', 'view_count', 'click_count', 'cart_count'] # Example features
 
-    def extract_intent_features(self, user_data: pd.DataFrame, behavior_logs: pd.DataFrame) -> pd.DataFrame:
+class IntentEngine:
+    """
+    Engine for extracting user intent features and training a lead scoring model.
+
+    This module supports the lead generation part of the project:
+    behavioural events + customer/order features -> lead score.
+    """
+
+    def __init__(self, model_path: str = None, random_state: int = 42):
+        self.random_state = random_state
+
+        if model_path:
+            self.model = joblib.load(model_path)
+            self.is_fitted = True
+        else:
+            self.model = RandomForestClassifier(
+                n_estimators=100,
+                random_state=random_state,
+                class_weight="balanced"
+            )
+            self.is_fitted = False
+
+        # Keep feature names aligned with synthetic funnel event types.
+        self.features = [
+            "review_score",
+            "delivery_delay_days",
+            "view_count",
+            "click_count",
+            "add_to_cart_count",
+            "inquiry_count"
+        ]
+
+        self.trained_features = None
+
+    def extract_intent_features(
+        self,
+        user_data: pd.DataFrame,
+        behavior_logs: pd.DataFrame
+    ) -> pd.DataFrame:
         """
-        Extract features combining text sentiment (using review score as proxy here) 
-        and behavioral depth.
-        (Aligns with Notebook 04)
-        
-        # TODO (V2 Roadmap - TikTok LIVE Integration):
-        # 1. Replace rule-based sentiment with real-time Embedding Vector Search (e.g., using Qwen/Llama-3).
-        # 2. Integrate real-time chat velocity and live room watch duration from streaming pipelines.
+        Extract intent features by combining user-level data and behavioural logs.
+
+        Parameters
+        ----------
+        user_data : pd.DataFrame
+            User-level feature table. Must contain user_id.
+        behavior_logs : pd.DataFrame
+            Synthetic or real behavioural event logs. Must contain user_id and event_type.
+
+        Returns
+        -------
+        pd.DataFrame
+            User-level intent feature table.
+
+        Notes
+        -----
+        V2 Roadmap for TikTok LIVE / SMB use case:
+        - Replace static review-score proxy with real-time comment sentiment or embedding signals.
+        - Add live room watch duration, comment velocity, product click depth, and seller response speed.
+        - Serve lead scores through an API for near real-time ranking.
         """
-        logger.info("Extracting intent features from user behavior and reviews...")
-        
-        # Assuming we aggregate user behavior by user_id
-        behavior_agg = behavior_logs.groupby('user_id')['event_type'].value_counts().unstack().fillna(0)
-        behavior_agg.columns = [f"{col}_count" for col in behavior_agg.columns]
-        
-        # Merge with user historical data
-        features_df = pd.merge(user_data, behavior_agg, on='user_id', how='left').fillna(0)
-        
-        # Assume LLM-parsed sentiment score or classification goes here
-        # features_df['sentiment_score'] = ... 
-        
+        logger.info("Extracting intent features from user behaviour and reviews...")
+
+        if "user_id" not in user_data.columns:
+            raise ValueError("user_data must contain a 'user_id' column.")
+
+        required_log_cols = {"user_id", "event_type"}
+        missing_log_cols = required_log_cols - set(behavior_logs.columns)
+
+        if missing_log_cols:
+            raise ValueError(
+                f"behavior_logs is missing required columns: {missing_log_cols}"
+            )
+
+        behavior_agg = (
+            behavior_logs
+            .groupby("user_id")["event_type"]
+            .value_counts()
+            .unstack(fill_value=0)
+        )
+
+        behavior_agg.columns = [
+            f"{event_type}_count" for event_type in behavior_agg.columns
+        ]
+
+        features_df = pd.merge(
+            user_data,
+            behavior_agg,
+            on="user_id",
+            how="left"
+        )
+
+        # Ensure all expected event-count columns exist even if some events are absent.
+        expected_count_cols = [
+            "view_count",
+            "click_count",
+            "add_to_cart_count",
+            "inquiry_count",
+            "purchase_count"
+        ]
+
+        for col in expected_count_cols:
+            if col not in features_df.columns:
+                features_df[col] = 0
+
+        count_cols = [col for col in features_df.columns if col.endswith("_count")]
+        features_df[count_cols] = features_df[count_cols].fillna(0)
+
+        # Fill numeric columns only, avoiding accidental string replacement.
+        numeric_cols = features_df.select_dtypes(include=["number"]).columns
+        features_df[numeric_cols] = features_df[numeric_cols].fillna(0)
+
         return features_df
 
-    def train_lead_scoring_model(self, features_df: pd.DataFrame, target_col: str = 'is_high_intent'):
+    def train_lead_scoring_model(
+        self,
+        features_df: pd.DataFrame,
+        target_col: str = "is_high_intent"
+    ) -> RandomForestClassifier:
         """
-        Train the proxy model for lead scoring automation.
-        (Aligns with Notebook 05)
+        Train a proxy model for lead scoring automation.
+
+        Parameters
+        ----------
+        features_df : pd.DataFrame
+            User-level feature table with target label.
+        target_col : str
+            Target column indicating whether the user is high-intent.
+
+        Returns
+        -------
+        RandomForestClassifier
+            Trained lead scoring model.
         """
         logger.info("Training proxy model for lead scoring...")
-        
-        # Ensure required features are present
-        available_features = [f for f in self.features if f in features_df.columns]
-        
-        X = features_df[available_features]
-        y = features_df[target_col]
-        
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
+
+        if target_col not in features_df.columns:
+            raise ValueError(f"Target column '{target_col}' not found in features_df.")
+
+        available_features = [
+            feature for feature in self.features if feature in features_df.columns
+        ]
+
+        if not available_features:
+            raise ValueError(
+                "No required lead scoring features found in features_df. "
+                f"Expected one or more of: {self.features}"
+            )
+
+        X = features_df[available_features].copy()
+        y = features_df[target_col].copy()
+
+        X = X.apply(pd.to_numeric, errors="coerce").fillna(0)
+
+        if y.nunique() < 2:
+            raise ValueError(
+                f"Target column '{target_col}' must contain at least two classes."
+            )
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X,
+            y,
+            test_size=0.2,
+            random_state=self.random_state,
+            stratify=y
+        )
+
         self.model.fit(X_train, y_train)
-        
-        # Output feature importance for business attribution
-        importance = dict(zip(available_features, self.model.feature_importances_))
-        logger.info(f"Feature importance: {importance}")
-        
+        self.is_fitted = True
+        self.trained_features = available_features
+
+        feature_importance = pd.DataFrame({
+            "feature": available_features,
+            "importance": self.model.feature_importances_
+        }).sort_values("importance", ascending=False)
+
+        logger.info(
+            "Feature importance: "
+            f"{feature_importance.to_dict(orient='records')}"
+        )
+
         return self.model
 
     def predict_lead_score(self, new_user_features: pd.DataFrame) -> pd.Series:
         """
-        Output intent probability scores (0-1), which can be wrapped as a real-time API.
+        Predict lead score as the probability of being high-intent.
+
+        Parameters
+        ----------
+        new_user_features : pd.DataFrame
+            New user feature table.
+
+        Returns
+        -------
+        pd.Series
+            Lead score between 0 and 1.
         """
-        available_features = [f for f in self.features if f in new_user_features.columns]
-        probabilities = self.model.predict_proba(new_user_features[available_features])[:, 1]
-        return pd.Series(probabilities, index=new_user_features.index, name="lead_score")
+        if not self.is_fitted:
+            raise NotFittedError(
+                "The lead scoring model has not been fitted yet. "
+                "Call train_lead_scoring_model() first or load a fitted model."
+            )
+
+        if not self.trained_features:
+            raise ValueError("No trained feature list found for prediction.")
+
+        missing_features = [
+            feature for feature in self.trained_features
+            if feature not in new_user_features.columns
+        ]
+
+        if missing_features:
+            raise ValueError(
+                f"new_user_features is missing required columns: {missing_features}"
+            )
+
+        X_new = new_user_features[self.trained_features].copy()
+        X_new = X_new.apply(pd.to_numeric, errors="coerce").fillna(0)
+
+        probabilities = self.model.predict_proba(X_new)[:, 1]
+
+        return pd.Series(
+            probabilities,
+            index=new_user_features.index,
+            name="lead_score"
+        )
+
+    def save_model(self, model_path: str) -> None:
+        """
+        Save the trained lead scoring model.
+        """
+        if not self.is_fitted:
+            raise NotFittedError("Cannot save an unfitted model.")
+
+        joblib.dump(self.model, model_path)
+        logger.info(f"Lead scoring model saved to {model_path}")
+
 
 if __name__ == "__main__":
-    engine = IntentEngine()
-    # Mock data flow
-    # features = engine.extract_intent_features(user_df, log_df)
-    # model = engine.train_lead_scoring_model(features)
-    # scores = engine.predict_lead_score(new_users)
+    engine = IntentEngine(random_state=42)
+
+    # Example usage:
+    # features_df = engine.extract_intent_features(user_df, behavior_logs_df)
+    # model = engine.train_lead_scoring_model(features_df)
+    # scores = engine.predict_lead_score(features_df)
