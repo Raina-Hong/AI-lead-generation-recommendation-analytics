@@ -360,11 +360,19 @@ To bridge the gap between static transaction records and full-funnel product ana
 
 Synthetic fields include:
 
-- Event identifiers: `session_id`, `event_time`, `event_type`
-- Acquisition and device attributes: `traffic_source`, `device_type`
-- Funnel behaviour flags: `viewed`, `clicked`, `added_to_cart`, `inquired`, `purchased`
-- Experiment outcome fields: `click_probability`, `inquiry_probability`, `purchase_probability`, `clicked`, `inquired`, `purchased`, `revenue`
--This table contains synthetic A/B test outcomes used to compare popularity-based and intent-aware recommendation strategies. Key outcome fields include `clicked`, `inquired`, `purchased`, and `revenue`.
+- `session_id`
+- `event_time`
+- `event_type`
+- `traffic_source`
+- `device_type`
+- `viewed`
+- `clicked`
+- `added_to_cart`
+- `inquired`
+- `click_probability`
+- `inquiry_probability`
+- `purchase_probability`
+- synthetic A/B test outcomes such as `clicked`, `inquired`, `purchased`, and `revenue`
 
 Rather than treating the absence of real clickstream logs as a blocker, these fields were built on reproducible business logic and probabilistic generation rules. The synthetic data layer creates a realistic marketplace environment for demonstrating advanced product analytics workflows, including full-funnel conversion analysis, high-intent lead identification, recommendation strategy comparison, and experiment evaluation.
 
