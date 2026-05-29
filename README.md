@@ -273,36 +273,6 @@ AI-lead-generation-recommendation-analytics/
 
 ---
 
-## How to Run
-
-1. Clone the repository.
-
-```bash
-git clone https://github.com/Raina-Hong/AI-lead-generation-recommendation-analytics.git
-cd AI-lead-generation-recommendation-analytics
-```
-
-2. Install dependencies.
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Run the notebooks in order.
-
-```text
-notebook/01_data_understanding_and_cleaning.ipynb
-notebook/02_sql_business_analysis.ipynb
-notebook/03_user_funnel_analysis.ipynb
-notebook/04_llm_intent_classification.ipynb
-notebook/05_lead_scoring_model.ipynb
-notebook/06_recommendation_strategy.ipynb
-notebook/07_ab_test_evaluation.ipynb
-```
-
-4. Open Tableau dashboards using the links in [`dashboard/tableau_links.md`](dashboard/tableau_links.md).
-
----
 
 ## Production Considerations
 
