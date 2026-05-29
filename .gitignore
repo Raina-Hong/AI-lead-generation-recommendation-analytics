@@ -1,0 +1,17 @@
+.DS_Store
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+.Rhistory
+.RData
+.Rproj.user/
+__pycache__/
+*.py[cod]
+.env
+venv/
+env/
+.venv/
+*.log
+*.tmp
+*.temp
+~$*.xlsx
+~$*.xls
