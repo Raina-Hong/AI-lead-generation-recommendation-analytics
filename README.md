@@ -15,6 +15,28 @@
 
 ## Project Overview
 
+graph TD
+    subgraph Data Pipeline [1. Synthetic Data Pipeline]
+        A[Raw Transactions] --> B(Data Cleaning & GMV)
+        B --> C{Synthetic Funnel Engine}
+        C -->|View/Click/Cart| D[Behavioral Logs]
+    end
+
+    subgraph AI Engine [2. Intent & Scoring Engine]
+        D --> E[LLM-Inspired Intent Rules]
+        E -->|Sentiment & Category| F(Random Forest Proxy Model)
+        F --> G((Real-time Lead Score))
+    end
+
+    subgraph Recommendation [3. Strategy & A/B Testing]
+        G --> H{Intent-Aware Ranking}
+        H -->|ε-Greedy for SMBs| I[Product Recommendations]
+        I --> J>A/B Test Uplift & Guardrails]
+    end
+    
+    style G fill:#f9f,stroke:#333,stroke-width:2px
+    style J fill:#bbf,stroke:#333,stroke-width:2px
+
 This project explores how an e-commerce marketplace can identify high-intent customers and recommend products more effectively than a simple popularity-based strategy.
 
 The raw Olist dataset provides historical transactions, customer reviews, delivery information, products, sellers, and payments. To turn these static transaction records into a fuller product analytics workflow, I designed a **business-driven synthetic event pipeline** that reconstructs user engagement stages such as view, click, add-to-cart, inquiry, and purchase. This makes it possible to analyse the customer funnel, generate lead quality signals, and evaluate recommendation strategies in a structured way.
