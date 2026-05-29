@@ -314,10 +314,6 @@ Three Tableau dashboards were created to turn the analysis into stakeholder-faci
 
 ### 11.1 Dashboard 1: Executive Overview
 
-![Dashboard 1: Executive Overview](../dashboard/tableau_screenshots/dashboard_1_executive_overview.png)
-
-**Interactive dashboard:** [View Dashboard 1 on Tableau Public](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/Dashboard1ExecutiveOverviewDashboard?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
-
 **Dashboard purpose:** provide a high-level business view of marketplace performance and the commercial impact of the recommendation experiment.
 
 The dashboard starts with five KPI cards:
@@ -347,10 +343,6 @@ The A/B uplift chart at the bottom connects the business overview directly to th
 
 ### 11.2 Dashboard 2: User Intent & Lead Quality
 
-![Dashboard 2: User Intent and Lead Quality](../dashboard/tableau_screenshots/dashboard_2_user_intent_lead_quality.png)
-
-**Interactive dashboard:** [View Dashboard 2 on Tableau Public](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/UserIntentLeadQuality?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
-
 **Dashboard purpose:** explain who the high-intent users are and how intent classification supports lead prioritisation.
 
 The purchase intent chart shows that most records are classified as high intent. There are **99,674 high-intent records**, compared with **7,591 low-intent records** and **5,385 medium-intent records**. This reflects the fact that the source data is transaction-heavy and many records are linked to completed purchases.
@@ -368,10 +360,6 @@ The high-intent rate by user segment shows that **High Value users have the high
 **Dashboard insight:** the intent layer turns raw review, delivery, and behavioural signals into business-readable lead quality indicators. This dashboard answers the question: *Which users and categories should the business prioritise for targeted recommendation or follow-up?*
 
 ### 11.3 Dashboard 3: Recommendation A/B Test Performance
-
-![Dashboard 3: Recommendation A/B Test Performance](../dashboard/tableau_screenshots/dashboard_3_recommendation_ab_test.png)
-
-**Interactive dashboard:** [View Dashboard 3 on Tableau Public](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/Dashboard3RecommendationABTestPerformance?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
 
 **Dashboard purpose:** compare the control and treatment strategies and evaluate whether intent-aware recommendation improves business outcomes.
 
