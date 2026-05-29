@@ -2,134 +2,135 @@
 
 ## 1. Introduction
 
-This project builds an end-to-end analytics workflow for AI-powered lead generation and recommendation analysis in an e-commerce marketplace setting.
+This project builds an end-to-end analytics workflow for e-commerce lead generation, user intent analysis, recommendation strategy design, and experiment evaluation.
 
-The project uses the public Olist Brazilian e-commerce dataset. The raw dataset contains orders, customers, sellers, products, payments, reviews, and delivery information. On top of this transaction data, the project creates simulated user engagement events, customer intent labels, lead scores, recommendation strategies, and an A/B testing framework.
+The project uses the public Olist Brazilian e-commerce dataset as the transaction foundation. The raw dataset contains orders, customers, sellers, products, payments, reviews, and delivery information. However, like many public commerce datasets, it does not include front-end behavioural tracking data such as product views, clicks, add-to-cart events, inquiries, or abandoned sessions.
 
-The purpose of the project is to show how a platform could move from basic transaction reporting to a more business-oriented analytics workflow: identifying high-intent customers, understanding lead quality, recommending products more intelligently, and evaluating recommendation performance.
+To make the project closer to a real product analytics scenario, I designed a **business-driven synthetic event pipeline** on top of the real transaction data. This pipeline uses transparent probability rules and commercial assumptions to reconstruct a plausible user engagement journey around the available order records. The goal is not to claim that the synthetic events are real platform logs, but to show how a marketplace could move from transaction reporting to a more complete lead generation and recommendation analytics workflow.
 
-This is a portfolio analytics project rather than a production system. Where the original data does not contain certain fields, such as clickstream events or real experiment outcomes, those parts are simulated using transparent business assumptions.
+The final workflow covers:
+
+- transaction data cleaning and feature engineering;
+- SQL-based marketplace performance analysis;
+- synthetic user funnel construction;
+- rule-based intent classification from review, delivery, product, and behaviour signals;
+- lead score automation and feature importance analysis;
+- recommendation strategy design;
+- simulated A/B test evaluation;
+- Tableau dashboards for business reporting.
+
+The project is designed as a portfolio analytics project for product analytics, growth analytics, and data analyst roles. It focuses on business reasoning, reproducible data pipelines, and stakeholder-facing dashboard communication rather than production deployment.
 
 ---
 
 ## 2. Business Problem
 
-For an e-commerce marketplace, product recommendation is not only a technical ranking problem. It is also a business problem. The platform needs to understand which customers are likely to purchase, which products and sellers are reliable, and which recommendation strategy is most likely to improve engagement and revenue.
+For an e-commerce marketplace, recommendation is not only a ranking problem. A platform needs to understand which users are most likely to convert, which products and sellers are commercially reliable, and whether a more targeted recommendation strategy can outperform a simple popularity baseline.
 
-A simple popularity-based approach can recommend frequently purchased products, but it ignores several important signals:
+A basic popularity-based recommendation strategy is easy to implement, but it ignores several important signals:
 
-- whether the customer is showing strong purchase intent;
-- whether the product matches the customer's preferred category;
-- whether the product has strong review performance;
+- whether the user is showing strong purchase intent;
+- whether the product matches the user's preferred category;
+- whether the product has good review quality;
 - whether the seller delivers reliably;
-- whether a customer is high value or low value;
-- whether the recommendation strategy actually improves conversion outcomes.
+- whether the user belongs to a higher-value customer segment;
+- whether the strategy improves downstream conversion and revenue metrics.
 
-This project focuses on three business questions:
+This project answers three business questions:
 
-1. How can high-intent customers be identified from transaction, review, delivery, and behavioural signals?
-2. Which product categories, sellers, and user segments are most valuable?
-3. Can an intent-aware recommendation strategy outperform a popularity-based baseline in a simulated experiment?
-
----
-
-## 3. Data Sources
-
-The project uses the Olist public e-commerce dataset. The raw data tables include:
-
-| Raw Table | Description |
-|---|---|
-| `olist_customers_dataset.csv` | Customer IDs, unique customer IDs, customer city, and state |
-| `olist_orders_dataset.csv` | Order status and order lifecycle timestamps |
-| `olist_order_items_dataset.csv` | Product, seller, price, and freight information at order-item level |
-| `olist_order_payments_dataset.csv` | Payment type, payment instalments, and payment value |
-| `olist_order_reviews_dataset.csv` | Review scores and customer review text |
-| `olist_products_dataset.csv` | Product category and product attributes |
-| `olist_sellers_dataset.csv` | Seller location information |
-| `product_category_name_translation.csv` | Product category translation from Portuguese to English |
-| `olist_geolocation_dataset.csv` | Brazilian zip code, latitude, longitude, city, and state data |
-
-The raw data was transformed into one cleaned order-level dataset and several final analytical tables.
-
-The main final datasets are:
-
-| Dataset | Purpose |
-|---|---|
-| `clean_order_base.csv` | Cleaned order-level analytical base table |
-| `fact_user_events.csv` | Simulated user event table for funnel analysis |
-| `fact_reviews_llm.csv` | Intent classification and rule-based lead scoring table |
-| `fact_lead_scores.csv` | Model-based lead scoring output |
-| `fact_recommendations.csv` | Recommendation candidates from different strategies |
-| `fact_recommendation_experiment.csv` | Simulated A/B test outcomes |
+1. **Lead generation:** How can high-intent users be identified from review, delivery, transaction, and behavioural signals?
+2. **Recommendation strategy:** Can product recommendation be improved by combining user intent, product quality, seller reliability, and category preference?
+3. **Experiment evaluation:** Under a controlled simulated experiment, does an intent-aware recommendation strategy outperform a popularity-based baseline?
 
 ---
 
-## 4. Data Cleaning and Preparation
+## 3. Data Sources and Analytical Tables
 
-The first step was to create a clean order-level analytical table. This table was built by merging order records with customer, product, seller, payment, order item, review, and product category translation data.
+The project uses the Olist public e-commerce dataset. The raw tables include customer profiles, order lifecycle data, order items, payments, product information, seller information, product category translations, reviews, and geolocation data.
 
-The cleaning process included:
+Instead of keeping the analysis scattered across raw files, the raw data was transformed into a set of analytical tables for different stages of the project:
+
+| Dataset | Role in the Project |
+|---|---|
+| `clean_order_base.csv` | Cleaned order-level table used for KPI analysis, delivery analysis, category analysis, and customer value segmentation |
+| `fact_user_events.csv` | Synthetic user event table used for funnel analysis |
+| `fact_reviews_llm.csv` | Intent classification and rule-based lead score table |
+| `fact_lead_scores.csv` | Lead score automation and model output table |
+| `fact_recommendations.csv` | Recommendation candidates generated from different recommendation strategies |
+| `fact_recommendation_experiment.csv` | Simulated A/B test outcome table |
+
+This structure makes the workflow easier to explain and audit: raw marketplace data is first converted into a clean analytical base, then extended into intent, lead scoring, recommendation, and experiment tables.
+
+---
+
+## 4. Data Cleaning and Feature Engineering
+
+The first step was to create a clean order-level analytical table. I merged order records with customer, product, seller, payment, review, item-level, and category translation data.
+
+The main cleaning and feature engineering steps included:
 
 - filtering and preparing delivered order records;
-- merging product category translations so that categories can be analysed in English;
-- combining price and freight value to calculate GMV;
-- calculating delivery delay using actual delivery date and estimated delivery date;
+- translating product category names into English;
+- calculating GMV from product price and freight value;
+- calculating delivery delay from actual and estimated delivery dates;
 - creating a late delivery flag;
-- extracting order date, order year, and order month;
-- standardising product category values;
+- extracting order year and order month;
+- standardising category labels;
 - creating price bands;
-- preserving customer location, seller location, payment type, and review score for later analysis.
+- preserving customer location, seller location, payment type, and review score for downstream analysis.
 
-The final cleaned order base contains business-ready fields such as `gmv`, `delivery_delay_days`, `late_delivery_flag`, `price_band`, `category`, `payment_type`, `review_score`, `seller_state`, and `customer_state`.
+The final order base contains business-ready fields such as `gmv`, `delivery_delay_days`, `late_delivery_flag`, `price_band`, `category`, `payment_type`, `review_score`, `seller_state`, and `customer_state`.
 
-A missing value check was also completed. The highest missing rates were in review comment fields, which is expected because many customers leave a score without writing a text review. The review comment title had an 88.34% missing rate and the review comment message had a 58.70% missing rate. These missing text values were handled carefully in the later intent classification step by using a placeholder rather than dropping the records.
+A missing value check was also completed. The highest missing rates were in review text fields, which is expected because many customers leave a review score without writing a comment. Instead of dropping those records, missing text values were handled with placeholders so that review score, delivery, and transaction information could still be used in the intent layer.
 
 ---
 
 ## 5. SQL Business Analysis
 
-DuckDB SQL was used to generate the main business analysis outputs. The SQL layer produced KPI tables for overall marketplace performance, monthly GMV trend, category performance, seller performance, customer value, review quality, payment method, and delivery delay impact.
+DuckDB SQL was used to create the main business analysis outputs. This SQL layer produced KPI tables for overall marketplace performance, monthly GMV trend, category performance, seller performance, payment method, review quality, customer value, and delivery delay impact.
 
-The overall KPI summary showed:
+The overall marketplace summary shows a large and commercially meaningful transaction base:
 
 | Metric | Value |
 |---|---:|
-| Completed orders | 96,478 |
-| Unique users | 93,358 |
-| Unique products | 32,216 |
-| Unique sellers | 2,970 |
-| Total GMV | BRL 15.42M |
-| Average order value | BRL 139.93 |
-| Average review score | 4.09 |
+| Completed orders | **96,478** |
+| Unique users | **93,358** |
+| Unique products | **32,216** |
+| Unique sellers | **2,970** |
+| Total GMV | **BRL 15.42M** |
+| Average order value | **BRL 139.93** |
+| Average review score | **4.09** |
 
-The highest GMV product categories were:
+The highest-GMV product categories were:
 
 | Category | Orders | Total GMV | Average Review Score |
 |---|---:|---:|---:|
-| health_beauty | 8,647 | BRL 1.41M | 4.20 |
-| watches_gifts | 5,495 | BRL 1.26M | 4.08 |
-| bed_bath_table | 9,272 | BRL 1.23M | 3.94 |
-| sports_leisure | 7,530 | BRL 1.12M | 4.17 |
-| computers_accessories | 6,530 | BRL 1.03M | 3.99 |
+| health_beauty | 8,647 | **BRL 1.41M** | 4.20 |
+| watches_gifts | 5,495 | **BRL 1.26M** | 4.08 |
+| bed_bath_table | 9,272 | **BRL 1.23M** | 3.94 |
+| sports_leisure | 7,530 | **BRL 1.12M** | 4.17 |
+| computers_accessories | 6,530 | **BRL 1.03M** | 3.99 |
 
-Payment analysis showed that credit card was the dominant payment type, with 73,941 orders and BRL 12.23M GMV. Boleto was the second-largest payment method, with 19,191 orders and BRL 2.77M GMV.
+Payment analysis showed that credit card was the dominant payment method, with **73,941 orders** and **BRL 12.23M GMV**. Boleto was the second-largest payment method, with **19,191 orders** and **BRL 2.77M GMV**.
 
-One of the most important findings was the impact of delivery delay on review quality:
+The most actionable SQL finding came from delivery performance:
 
 | Delivery Group | Orders | Avg Delivery Delay Days | Avg Review Score | Negative Review Rate |
 |---|---:|---:|---:|---:|
-| Non-late delivery | 89,936 | -13.62 | 4.21 | 11.32% |
-| Late delivery | 6,534 | 10.49 | 2.33 | 61.32% |
+| Non-late delivery | 89,936 | -13.62 | **4.21** | **11.32%** |
+| Late delivery | 6,534 | 10.49 | **2.33** | **61.32%** |
 
-This result shows that delivery reliability is closely related to customer satisfaction. For recommendation design, this means seller delivery performance should be considered alongside product popularity.
+This result is important for recommendation strategy design. Delivery reliability is not just an operations metric; it directly affects customer satisfaction. A seller with strong sales volume but poor fulfilment quality should not be treated the same as a seller with both strong demand and reliable delivery.
+
+**Business implication:** seller delivery performance should be used as a penalty factor in recommendation ranking, especially for high-intent users who are close to conversion.
 
 ---
 
-## 6. User Funnel Simulation
+## 6. Synthetic User Funnel Construction
 
-The Olist dataset does not include real browsing, click, add-to-cart, inquiry, or non-purchase session data. To support lead-generation analysis, this project created a simulated user engagement funnel based on observed purchase records and reproducible business assumptions.
+The Olist dataset does not contain real clickstream logs. To support lead generation analysis, I built a synthetic user engagement funnel on top of confirmed transaction data.
 
-The simulated event types are:
+The synthetic event pipeline created five event types:
 
 1. `view`
 2. `click`
@@ -137,33 +138,37 @@ The simulated event types are:
 4. `inquiry`
 5. `purchase`
 
+The event generation logic was based on business assumptions such as user value segment, review quality, traffic source, device type, and purchase behaviour. This is best understood as a **business logic engine** rather than a claim of real user tracking data. The point is to demonstrate how a lead generation funnel could be structured when front-end behavioural logs are available or need to be approximated for analysis.
+
 The generated funnel summary was:
 
 | Event Type | Unique Users | Conversion from View | Stage-to-Stage Conversion |
 |---|---:|---:|---:|
-| view | 93,358 | 100.00% | 100.00% |
-| click | 65,258 | 69.90% | 69.90% |
-| add_to_cart | 48,823 | 52.30% | 74.82% |
-| inquiry | 35,024 | 37.52% | 71.74% |
-| purchase | 93,358 | 100.00% | 266.55% |
+| view | **93,358** | 100.00% | 100.00% |
+| click | **65,258** | 69.90% | 69.90% |
+| add_to_cart | **48,823** | 52.30% | 74.82% |
+| inquiry | **35,024** | 37.52% | 71.74% |
+| purchase | **93,358** | 100.00% | 266.55% |
 
-The purchase stage looks different from a normal acquisition funnel because the simulation was built from confirmed purchase records. In other words, the purchase records already exist in the source data, while earlier events were simulated around them. For this reason, the funnel should be interpreted as a simulated engagement funnel around completed purchases, not as a true acquisition funnel containing both converted and non-converted visitors.
+The purchase stage is different from a normal acquisition funnel because the source dataset is transaction-based. Completed purchases already exist in the raw data, while earlier behavioural events are generated around those orders. Therefore, the funnel should be read as an engagement reconstruction around observed purchases, not as a live acquisition funnel containing both converted and non-converted visitors.
 
-The funnel was also analysed by user segment and traffic source. High Value users had a higher click-through rate and inquiry rate than lower-value users. High Value users had a 75.16% click-through rate and a 42.07% inquiry rate, compared with 65.92% and 34.01% for Low Value users. This supports the idea that user value segment can be useful for lead prioritisation.
+The funnel also shows useful segmentation patterns. **High Value users had a 75.16% click-through rate and a 42.07% inquiry rate**, while Low Value users had a **65.92% click-through rate and a 34.01% inquiry rate**. This supports the use of user value segment as one of the lead prioritisation signals.
+
+**Business implication:** high-value users are more likely to move deeper into the funnel, so lead follow-up and recommendation targeting should not treat all users equally. A simple funnel count is not enough; the funnel needs to be segmented by value, intent, and behaviour depth.
 
 ---
 
-## 7. LLM-Inspired Intent Classification
+## 7. Intent Classification Layer
 
-The next step was to create a customer intent layer. This project uses a rule-based, LLM-inspired approach rather than calling an external large language model API.
+The next step was to build a structured customer intent layer. This project uses a rule-based, LLM-inspired approach instead of calling an external LLM API. The logic is explainable and reproducible, which is important for portfolio review and business reporting.
 
-The intent classification logic uses:
+The intent classification layer uses:
 
 - review score;
 - review text;
 - delivery delay;
 - late delivery flag;
-- simulated user behaviour signals;
+- synthetic behavioural signals;
 - user value segment;
 - price band;
 - GMV.
@@ -180,25 +185,32 @@ The intent category summary showed:
 
 | Intent Category | Records | Unique Users | Avg Lead Score | High-Intent Rate | Total GMV |
 |---|---:|---:|---:|---:|---:|
-| ready_to_purchase | 51,869 | 44,842 | 99.93 | 100.00% | BRL 4.02M |
-| price_sensitive | 20,822 | 19,145 | 92.48 | 92.59% | BRL 6.69M |
-| delivery_concern | 21,995 | 19,155 | 80.48 | 79.90% | BRL 3.36M |
+| ready_to_purchase | **51,869** | 44,842 | **99.93** | **100.00%** | BRL 4.02M |
+| price_sensitive | **20,822** | 19,145 | **92.48** | **92.59%** | **BRL 6.69M** |
+| delivery_concern | **21,995** | 19,155 | 80.48 | 79.90% | BRL 3.36M |
 | product_quality_concern | 4,883 | 4,082 | 74.79 | 78.07% | BRL 667.26K |
 | neutral_or_unclear | 5,883 | 4,860 | 85.69 | 69.98% | BRL 451.91K |
 | general_negative | 6,117 | 4,212 | 50.81 | 59.47% | BRL 468.15K |
 
-Two points are worth highlighting. First, the ready_to_purchase segment is the clearest high-intent group. Second, the price_sensitive segment generated the largest GMV among the intent categories. This is important because price-sensitive customers are not necessarily low-quality leads. They may still have strong purchase intent if they show clear behavioural signals.
+Two insights matter most here.
+
+First, the `ready_to_purchase` group is the cleanest high-intent segment. It has a near-maximum average lead score and a 100% high-intent rate.
+
+Second, `price_sensitive` users generated the largest GMV among the intent groups, with **BRL 6.69M**. This is commercially important because price-sensitive users should not automatically be treated as weak leads. If they show strong behavioural signals, they may be highly valuable but require different conversion tactics, such as discounts, bundles, free shipping, or time-limited offers.
+
+**Business implication:** intent categories should be used to personalise the action, not just to rank users. A delivery-concern user may need fulfilment reassurance, while a price-sensitive user may respond better to promotion framing.
 
 ---
 
-## 8. Lead Scoring Model
+## 8. Lead Score Automation and Feature Importance Analysis
 
-After creating the rule-based lead score and high-intent flag, two classification models were trained to automate the lead scoring framework:
+After creating the rule-based lead score and high-intent flag, I trained Logistic Regression and Random Forest models as a **proxy model for rule automation and feature importance analysis**.
 
-- Logistic Regression
-- Random Forest
+The primary objective of this phase was to construct a robust proxy model for automating the lead scoring rules, rather than deploying a standalone predictive conversion model. Since the target labels are derived from explicit business rules, the near-perfect ROC-AUC is expected. The result shows that the machine learning pipeline can fully capture and automate the non-linear business logic behind lead prioritisation, which creates a practical foundation for a future real-time scoring API.
 
-The models used features such as review score, sentiment, purchase intent, intent category, behavioural events, user value segment, delivery delay, traffic source, and device type.
+This stage answers a more practical question:
+
+> If the lead scoring logic were automated through a machine learning layer, which features would the model rely on most, and do those features support the original business assumptions?
 
 The model metrics were:
 
@@ -207,42 +219,38 @@ The model metrics were:
 | Logistic Regression | 0.9997 | 1.0000 | 0.9996 | 0.9998 | 1.0000 |
 | Random Forest | 0.9987 | 1.0000 | 0.9985 | 0.9992 | 1.0000 |
 
-These numbers are intentionally interpreted with caution. The target variable was created using rule-based business logic, and the model features include variables that are closely related to that rule-based target. Because of this, the model is not evidence of real-world predictive performance.
-
-The better interpretation is that the model successfully automates and reproduces the lead scoring framework. In a real business environment, a true predictive model would require both converted and non-converted users, real behavioural logs, and labels based on future conversion outcomes.
-
-The most important model features included:
+The stronger value of this stage comes from the Random Forest feature importance ranking:
 
 | Feature | Importance |
 |---|---:|
-| purchase_intent_high | 0.2585 |
-| purchase_intent_low | 0.1389 |
-| review_score | 0.1042 |
-| sentiment_positive | 0.0928 |
-| added_to_cart | 0.0786 |
-| total_events | 0.0604 |
+| purchase_intent_high | **0.2585** |
+| purchase_intent_low | **0.1389** |
+| review_score | **0.1042** |
+| sentiment_positive | **0.0928** |
+| added_to_cart | **0.0786** |
+| total_events | **0.0604** |
 | purchase_intent_medium | 0.0502 |
 | intent_category_ready_to_purchase | 0.0497 |
 | inquired | 0.0441 |
 | sentiment_negative | 0.0337 |
 
-The feature ranking is consistent with the project logic: purchase intent, review quality, sentiment, and engagement depth are the most important signals for identifying high-intent leads.
+The ranking is consistent with the business design. Purchase intent, review quality, positive sentiment, and behaviour depth are the strongest signals. This confirms that the scoring engine is not driven by a single raw metric such as GMV, but by a broader combination of intent, experience, and engagement features.
+
+**Business implication:** the lead prioritisation layer should focus on intent strength, review experience, and engagement depth. These features are more useful for commercial targeting than relying only on product popularity or historical transaction value.
 
 ---
 
 ## 9. Recommendation Strategy Design
 
-The project then used the lead scoring output to design recommendation strategies.
-
-Three strategies were created:
+The recommendation section uses the lead scoring output to compare three recommendation strategies.
 
 ### 9.1 Popularity-Based Recommendation
 
-This strategy recommends products based mainly on historical popularity. It is simple and easy to explain, but it can over-concentrate recommendations around a small number of products.
+This strategy recommends products mainly based on historical popularity. It is simple and easy to explain, but it tends to over-concentrate recommendations around a small number of products.
 
 ### 9.2 Category-Preference Recommendation
 
-This strategy uses the user's preferred category and recommends products from that category. It is more personalised than pure popularity ranking, but it still does not fully consider user intent or seller reliability.
+This strategy recommends products from the user's preferred category. It adds a personalisation layer, but it still does not fully account for purchase intent or seller reliability.
 
 ### 9.3 Intent-Aware Recommendation
 
@@ -260,124 +268,224 @@ The recommendation strategy summary showed:
 
 | Strategy | Recommendations | Unique Products | Unique Sellers | Avg Recommendation Score | Product Diversity Rate |
 |---|---:|---:|---:|---:|---:|
-| intent_aware | 5,000 | 10 | 8 | 0.9871 | 0.20% |
+| intent_aware | 5,000 | **10** | **8** | **0.9871** | **0.20%** |
 | popularity_based | 5,000 | 2 | 2 | 0.8567 | 0.04% |
-| category_preference | 5,000 | 105 | 83 | 0.4821 | 2.10% |
+| category_preference | 5,000 | **105** | **83** | 0.4821 | **2.10%** |
 
-The intent-aware strategy achieved the highest average recommendation score. However, it also recommended only 10 unique products and 8 unique sellers in the sampled output. This is a useful finding because it shows a common trade-off in recommendation systems: improving relevance can reduce diversity if no diversity constraint is added.
+The intent-aware strategy achieved the highest average recommendation score, which means it was strongest on relevance and commercial fit. However, it also recommended only **10 unique products** and **8 unique sellers** in the sampled output. This reveals a real recommendation trade-off: optimising only for relevance can reduce product diversity and seller exposure.
 
-A stronger future version should balance relevance, product diversity, seller exposure, and customer experience.
+**Business implication:** an intent-aware ranking strategy should be combined with diversity constraints. A stronger version would balance relevance, product diversity, seller exposure, delivery reliability, and category coverage.
 
 ---
 
 ## 10. Simulated A/B Test Evaluation
 
-A simulated A/B test was created to compare the popularity-based recommendation strategy with the intent-aware recommendation strategy.
+A controlled experiment framework was designed to compare the popularity-based recommendation strategy with the intent-aware recommendation strategy.
 
-The experiment design was:
+The experiment setup was:
 
 | Group | Strategy | Sample Size |
 |---|---|---:|
 | Control | Popularity-based recommendation | 5,000 users |
 | Treatment | Intent-aware recommendation | 5,000 users |
 
-The simulated outcomes were:
+The combined experiment result is shown below:
 
-| Metric | Control | Treatment | Absolute Difference | Uplift |
-|---|---:|---:|---:|---:|
-| CTR | 19.42% | 22.76% | +3.34 pp | +17.2% |
-| Inquiry Rate | 12.70% | 16.32% | +3.62 pp | +28.5% |
-| Purchase Rate | 10.32% | 13.56% | +3.24 pp | +31.4% |
-| Revenue per User | 9.10 | 13.18 | +4.08 | +44.9% |
-| Total Revenue | 45,485.40 | 65,898.25 | +20,412.85 | +44.9% |
+| Metric | Control | Treatment | Absolute Difference | Incremental Lift | Test Type | P-Value | Significant |
+|---|---:|---:|---:|---:|---|---:|---|
+| CTR | 19.42% | **22.76%** | +3.34 pp | **+17.2%** | Two-proportion z-test | 0.000042 | Yes |
+| Inquiry Rate | 12.70% | **16.32%** | +3.62 pp | **+28.5%** | Two-proportion z-test | 0.000000 | Yes |
+| Purchase Rate | 10.32% | **13.56%** | +3.24 pp | **+31.4%** | Two-proportion z-test | 0.000001 | Yes |
+| Revenue per User | 9.10 | **13.18** | +4.08 | **+44.9%** | Welch's t-test | 0.000000 | Yes |
 
-Statistical tests were also applied:
+The treatment group outperformed the control group across engagement, inquiry, purchase, and revenue metrics. The strongest commercial impact came from revenue per user, which increased from **9.10** to **13.18**, representing a **44.9% incremental lift**.
 
-| Metric | Test Type | Test Statistic | P-Value | Significant at 0.05 |
-|---|---|---:|---:|---|
-| CTR | Two-proportion z-test | 4.0937 | 0.000042 | Yes |
-| Inquiry Rate | Two-proportion z-test | 5.1391 | 0.000000 | Yes |
-| Purchase Rate | Two-proportion z-test | 4.9960 | 0.000001 | Yes |
-| Revenue per User | Welch's t-test | 5.8613 | 0.000000 | Yes |
+The purchase rate also improved from **10.32%** to **13.56%**. This is important because the treatment strategy did not only generate more clicks; it moved users further down the conversion path. In other words, the recommendation logic created value beyond surface-level engagement.
 
-Under the simulated design, the treatment group outperformed the control group across engagement, conversion, and revenue metrics.
+From an experiment design perspective, the result also highlights why recommendation performance should be judged across the full funnel. A strategy that increases CTR but cannibalises purchase intent or revenue would be much weaker. In this project, the intent-aware strategy improves all four evaluation metrics.
 
-These results should be read as an experiment design demonstration. They show how to compare recommendation strategies and test statistical significance, but they are not live production results.
+**Business implication:** intent-aware recommendation is a stronger testing candidate than popularity-based recommendation because it produces positive incremental lift across both engagement and commercial outcomes.
 
 ---
 
-## 11. Tableau Dashboard Design
+## 11. Tableau Dashboard Analysis
 
-Three Tableau dashboards were created for stakeholder communication.
+Three Tableau dashboards were created to turn the analysis into stakeholder-facing outputs. The dashboards are not just visual summaries; each one answers a different business question.
 
-### Dashboard 1: Executive Overview
+### 11.1 Dashboard 1: Executive Overview
 
-This dashboard provides a business overview of marketplace performance. It includes total GMV, orders, users, products, sellers, category performance, seller performance, and commercial trends.
+![Dashboard 1: Executive Overview](../dashboard/tableau_screenshots/dashboard_1_executive_overview.png)
 
-### Dashboard 2: User Intent & Lead Quality
+**Interactive dashboard:** [View Dashboard 1 on Tableau Public](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/Dashboard1ExecutiveOverviewDashboard?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
 
-This dashboard focuses on intent classification and lead quality. It shows intent category distribution, lead score patterns, user value segments, high-intent lead rates, and category-level lead quality.
+**Dashboard purpose:** provide a high-level business view of marketplace performance and the commercial impact of the recommendation experiment.
 
-### Dashboard 3: Recommendation A/B Test Performance
+The dashboard starts with five KPI cards:
 
-This dashboard compares the control and treatment groups in the simulated A/B test. It shows CTR, inquiry rate, purchase rate, revenue per user, total revenue, uplift, and statistical test outputs.
+- **96,478 orders**
+- **93,358 users**
+- **15.42M GMV**
+- **139.90 AOV**
+- **4.09 average review score**
+
+These KPI cards give the viewer immediate context about the size and quality of the dataset.
+
+The monthly GMV trend shows that GMV increased from late 2016 into 2017 and remained at a higher level through much of 2018. The line chart is useful because it shows that the marketplace is not a one-month sample; it has enough historical coverage to support trend analysis.
+
+The category chart shows that GMV is concentrated in several strong categories. **Health Beauty** is the largest category at around **1.41M GMV**, followed by **Watches Gifts**, **Bed Bath Table**, **Sports Leisure**, and **Computers Accessories**. This helps identify which categories should receive more attention in recommendation testing and campaign planning.
+
+The seller chart shows that top sellers generate meaningful but relatively smaller individual GMV compared with top categories. The leading seller has around **247K GMV**. This suggests that category-level strategy may be more important than relying on a few individual sellers only.
+
+The A/B uplift chart at the bottom connects the business overview directly to the experiment result. It shows that the intent-aware recommendation strategy improved:
+
+- **CTR by 17.2%**
+- **Inquiry rate by 28.5%**
+- **Purchase rate by 31.4%**
+- **Revenue per user by 44.9%**
+
+**Dashboard insight:** the marketplace has strong transaction volume and category concentration, and the simulated experiment suggests that intent-aware recommendation can improve not only engagement but also revenue. For business users, this dashboard answers the question: *Is this recommendation strategy worth further testing?*
+
+### 11.2 Dashboard 2: User Intent & Lead Quality
+
+![Dashboard 2: User Intent and Lead Quality](../dashboard/tableau_screenshots/dashboard_2_user_intent_lead_quality.png)
+
+**Interactive dashboard:** [View Dashboard 2 on Tableau Public](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/UserIntentLeadQuality?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
+
+**Dashboard purpose:** explain who the high-intent users are and how intent classification supports lead prioritisation.
+
+The purchase intent chart shows that most records are classified as high intent. There are **99,674 high-intent records**, compared with **7,591 low-intent records** and **5,385 medium-intent records**. This reflects the fact that the source data is transaction-heavy and many records are linked to completed purchases.
+
+The sentiment chart shows that positive sentiment dominates the dataset, with **88,201 positive records**, compared with **16,510 negative records** and **7,939 neutral records**. This is consistent with the average review score of **4.09** shown in Dashboard 1.
+
+The intent category breakdown gives more detail than sentiment alone. The largest group is **Ready to Purchase** with **51,869 records**. This is followed by **Delivery Concern** with **21,995 records** and **Price Sensitive** with **20,822 records**. This is useful because negative or cautious intent is not always bad. For example, delivery-concern users may still be valuable if the platform can reassure them about fulfilment.
+
+The lead score distribution shows that a large number of records are concentrated near the top score range. This indicates that the rule-based lead scoring framework is designed to prioritise users who show strong purchase intent, positive review experience, and deeper engagement signals.
+
+The high-intent rate by category chart highlights categories with strong lead quality. Categories such as **computers**, **small appliances home oven**, and **musical instruments** have high-intent rates above **90%**. This suggests that some categories may be especially suitable for targeted recommendation or campaign design.
+
+The high-intent rate by user segment shows that **High Value users have the highest high-intent rate at 92.58%**, followed by Medium Value users at **90.99%** and Low Value users at **90.38%**. The difference is not huge, but it still supports segment-aware lead prioritisation.
+
+**Dashboard insight:** the intent layer turns raw review, delivery, and behavioural signals into business-readable lead quality indicators. This dashboard answers the question: *Which users and categories should the business prioritise for targeted recommendation or follow-up?*
+
+### 11.3 Dashboard 3: Recommendation A/B Test Performance
+
+![Dashboard 3: Recommendation A/B Test Performance](../dashboard/tableau_screenshots/dashboard_3_recommendation_ab_test.png)
+
+**Interactive dashboard:** [View Dashboard 3 on Tableau Public](https://public.tableau.com/views/AI-lead-generation-recommendation-analytics/Dashboard3RecommendationABTestPerformance?:language=zh-CN&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
+
+**Dashboard purpose:** compare the control and treatment strategies and evaluate whether intent-aware recommendation improves business outcomes.
+
+The top four charts compare control and treatment performance:
+
+- CTR improved from **19.42%** to **22.76%**
+- Inquiry rate improved from **12.70%** to **16.32%**
+- Purchase rate improved from **10.32%** to **13.56%**
+- Revenue per user improved from **9.10** to **13.18**
+
+These charts make the experiment result easy to read. The treatment group performs better across the full funnel, not just on one metric.
+
+The uplift chart summarises the improvement by metric. The largest uplift is revenue per user at **44.88%**, followed by purchase rate at **31.40%**, inquiry rate at **28.50%**, and CTR at **17.20%**. This ordering is important. It suggests that the strategy creates stronger business impact at deeper funnel stages.
+
+The purchase rate by user segment chart shows that the treatment group outperforms the control group across all user value segments. For example, Medium Value users improve from **10.47%** to **14.65%**, High Value users improve from **11.26%** to **14.22%**, and Low Value users improve from **9.50%** to **11.97%**. This suggests that the treatment effect is not limited to only one segment.
+
+The product diversity chart shows an important trade-off. Category-preference recommendation has the highest product diversity rate at **2.10%**, while intent-aware recommendation has **0.20%**, and popularity-based recommendation has only **0.04%**. This means the intent-aware strategy improves performance, but it still needs a diversity control before it can be treated as a complete recommendation solution.
+
+**Dashboard insight:** the intent-aware recommendation strategy produces stronger simulated conversion and revenue outcomes, but future optimisation should add diversity constraints so that performance improvement does not come at the cost of overly narrow product exposure.
 
 Dashboard links are available in `dashboard/tableau_links.md`.
 
 ---
 
-## 12. Key Findings
+## 12. Key Findings and Business Recommendations
 
-The project produced five main findings.
+The project produced several findings that can be translated into business actions. The most important result is placed first, following a bottom-line-first structure.
 
-First, the marketplace has strong category concentration. A small number of categories, including health_beauty, watches_gifts, bed_bath_table, sports_leisure, and computers_accessories, contribute a large share of GMV.
+### Finding 1: Intent-aware recommendation improves full-funnel outcomes
 
-Second, delivery delay has a major impact on customer satisfaction. Late deliveries had a much lower review score and a much higher negative review rate than non-late deliveries.
+**Insight:** the treatment group improved **CTR by 17.2%**, **inquiry rate by 28.5%**, **purchase rate by 31.4%**, and **revenue per user by 44.9%** in the controlled experiment framework.
 
-Third, user intent segmentation provides more business context than review score alone. For example, price_sensitive users generated BRL 6.69M in GMV and had a high-intent rate of 92.59%.
+**Impact:** the uplift is not limited to clicks. The stronger improvement in purchase rate and revenue per user suggests that intent-aware ranking can create meaningful incremental lift deeper in the funnel, where the business impact is more direct.
 
-Fourth, lead scoring can help translate behaviour, sentiment, delivery, and value signals into a prioritisation framework for customer targeting.
+**Action:** move beyond pure popularity-based recommendation and continue testing ranking logic that combines user intent, product quality, seller quality, and fulfilment reliability. The next test should also monitor guardrail metrics such as refund rate, delivery complaints, seller concentration, and potential cannibalization of already high-performing products.
 
-Fifth, the simulated A/B test suggests that intent-aware recommendations can outperform popularity-based recommendations when the recommendation logic considers lead quality, product quality, seller reliability, and user preference.
+### Finding 2: Delivery reliability is a conversion and satisfaction risk
+
+**Insight:** late deliveries had an average review score of **2.33**, compared with **4.21** for non-late deliveries. The negative review rate increased from **11.32%** to **61.32%** when orders were late.
+
+**Impact:** logistics performance is not only an operations issue. It directly affects customer experience, trust, and conversion quality. Recommending products from unreliable sellers to high-intent users may waste valuable demand.
+
+**Action:** include seller delivery reliability in recommendation ranking. Sellers with high late-delivery rates should be down-weighted, especially for high-intent or high-value users. The platform could also test fulfilment reassurance messages, faster shipping options, or delivery protection at checkout.
+
+### Finding 3: Price-sensitive users unlock hidden GMV opportunities
+
+**Insight:** the `price_sensitive` segment generated **BRL 6.69M GMV** and had a **92.59% high-intent rate**.
+
+**Impact:** price sensitivity should not be treated as low commercial value. These users may still have strong purchase intent, but they need a different conversion trigger. Traditional strategies that deprioritise price-sensitive users may miss a large GMV opportunity.
+
+**Action:** avoid blanket deprioritisation. Use targeted pricing strategies such as dynamic shipping incentives, time-sensitive bundles, threshold discounts, or coupon framing for high-intent users in this segment. The goal is to improve conversion while protecting margin.
+
+### Finding 4: Relevance and catalog exposure need to be balanced
+
+**Insight:** the intent-aware strategy achieved the highest average recommendation score, but its product diversity rate was only **0.20%**. Category-preference recommendation had a higher diversity rate of **2.10%**.
+
+**Impact:** a highly relevant recommendation strategy can still create exposure concentration. If the same products or sellers receive too much traffic, the platform may reduce catalog discovery, seller fairness, and long-term marketplace health.
+
+**Action:** add diversity-aware re-ranking to balance relevance with catalog exposure and seller fairness. For example, the system could limit repeated exposure of the same seller, enforce minimum category coverage, or apply a diversity penalty when too many recommendations come from the same product group.
+
+### Finding 5: User value segmentation improves prioritisation
+
+**Insight:** High Value users had the highest high-intent rate at **92.58%**, followed by Medium Value users at **90.99%** and Low Value users at **90.38%**.
+
+**Impact:** the segment gap is not extreme, but it is useful for prioritisation. High-value users are important for retention, while Medium Value users may be a strong growth opportunity because they already show meaningful purchase intent.
+
+**Action:** use user value segment as a prioritisation layer rather than a hard filter. High-value and high-intent users should receive more personalised recommendations, while medium-value users can be targeted with growth campaigns designed to move them into higher-value segments.
 
 ---
 
 ## 13. Limitations
 
-This project has several important limitations.
+This project uses a public transaction dataset, so several parts of the workflow are generated through business assumptions rather than observed platform logs.
 
-The original Olist dataset does not include real clickstream data. Events such as view, click, add-to-cart, and inquiry were simulated. The funnel should therefore be interpreted as a simulated engagement funnel rather than a real acquisition funnel.
+The original dataset does not include real clickstream data. Events such as view, click, add-to-cart, and inquiry were created through a synthetic event pipeline. This design is intentional because the project aims to demonstrate how a lead generation workflow can be built when behavioural data needs to be reconstructed or approximated.
 
-The source data is based on completed transactions. It does not include a full population of non-converted users. This limits the ability to build a true conversion prediction model.
+The dataset is based on completed transactions and does not contain a full population of non-converted users. Because of this, the funnel is not a true acquisition funnel, and the model is not a true future-conversion prediction model.
 
-The intent classification is rule-based and LLM-inspired. It does not use a real LLM API. This was done intentionally to keep the project reproducible and explainable.
+The intent classification layer is rule-based and LLM-inspired. It does not call a real LLM API. This keeps the project reproducible and explainable, but a production version could use an actual LLM to classify open-ended review text more flexibly.
 
-The lead scoring model has target leakage because the target label was created from business rules and the model features are closely related to those rules. The model should be interpreted as an automation layer, not a production predictive model.
+The lead score automation model should be interpreted as a proxy model and feature importance extractor. Its high metrics reflect the fact that the target label was created from structured business rules and closely related features. In a production environment, the model would need real behavioural histories and future conversion labels.
 
-The A/B test is simulated. The results demonstrate experiment design and evaluation logic, but they do not represent a live platform experiment.
+The A/B test is simulated. It demonstrates experiment design, uplift calculation, and significance testing, but it does not represent a live platform experiment.
 
-The recommendation strategy does not yet include diversity, fairness, or inventory constraints. The intent-aware strategy produced strong simulated performance but low product and seller diversity.
+The current recommendation strategy does not yet include inventory, diversity, fairness, cold-start, or seller exposure constraints. The dashboard shows that intent-aware recommendation improves simulated performance but still has low product diversity.
 
 ---
 
 ## 14. Future Improvements
 
-A future version of the project could add simulated non-purchase sessions. This would allow the funnel to include users who drop off at view, click, add-to-cart, or inquiry stages before purchase.
+A stronger next version would add synthetic non-purchase sessions. This would allow the funnel to include users who drop off at view, click, add-to-cart, or inquiry stages before purchase, making the journey closer to a real acquisition funnel.
 
-If real clickstream data were available, the lead scoring model could be rebuilt as a true predictive model using historical user sessions and future conversion labels.
+If real clickstream data were available, the lead scoring framework could be rebuilt as a true predictive model using historical sessions and future conversion labels. This would allow the project to move from rule automation into production-style conversion prediction.
 
-The recommendation strategy could be improved by adding diversity constraints, category coverage rules, seller exposure controls, and cold-start handling for new products and sellers.
+The intent classification layer could also be upgraded with an actual large language model, such as GPT-4 or another text classification model, to process review text directly. The LLM output could then be benchmarked against the current rule-based labels to compare accuracy, interpretability, and cost.
 
-The intent classification layer could also be upgraded by using an actual language model to classify review text and compare model-generated intent labels against the current rule-based labels.
+The recommendation strategy could be improved with a diversity-aware re-ranking layer that balances relevance with catalog exposure, seller fairness, category coverage, delivery reliability, and cold-start handling. This would reduce over-concentration while maintaining conversion performance.
 
-Finally, the A/B testing section could be expanded with power analysis, minimum detectable effect calculation, and experiment duration planning.
+From an engineering perspective, the lead scoring and recommendation logic could be packaged into a lightweight API service. In a production-style design, new user events could update intent scores in near real time, and recommendations could be refreshed through a scheduled or streaming pipeline.
+
+The experiment design could also be extended with power analysis, minimum detectable effect calculation, experiment duration planning, and guardrail metrics such as refund rate, complaint rate, delivery delay, seller concentration, and cannibalization of existing best-selling products.
 
 ---
 
 ## 15. Conclusion
 
-This project demonstrates a complete analytics workflow for lead generation and recommendation strategy evaluation. It starts from raw e-commerce data, builds clean analytical tables, uses SQL to understand business performance, simulates a user engagement funnel, classifies customer intent, builds a lead scoring framework, designs recommendation strategies, and evaluates the recommendation strategy through a simulated A/B test.
+This project validates the business value of intent-aware recommendation analytics in an e-commerce marketplace setting.
 
-The main business conclusion is that recommendation decisions should not rely only on product popularity. Customer intent, delivery reliability, product quality, seller quality, and user value segment can all provide useful signals for targeting high-intent users.
+The main conclusion is that recommendation decisions should not rely only on product popularity. Customer intent, review quality, delivery reliability, seller quality, category preference, and user value segment all provide useful signals for identifying and prioritising high-intent users.
 
-The project is strongest as a portfolio case study for data analytics, product analytics, and growth analytics roles. It shows not only technical skills in Python, SQL, modelling, and Tableau, but also the ability to connect data work to business decisions.
+The strongest project result is the controlled experiment framework: the intent-aware strategy improved **CTR, inquiry rate, purchase rate, and revenue per user**, with the largest incremental lift coming from **revenue per user at 44.9%**. This shows that the strategy can improve deeper-funnel commercial outcomes, not only surface-level engagement.
+
+At the same time, the dashboard analysis shows a practical trade-off. The intent-aware strategy improves conversion and revenue metrics, but product diversity remains low. A stronger production version should therefore balance relevance with catalog exposure and seller fairness.
+
+Overall, this project demonstrates technical skills in Python, SQL, modelling, statistics, and Tableau, while also showing the ability to translate data analysis into business decisions, experiment design, and product improvement recommendations.
+
+---
