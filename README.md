@@ -250,7 +250,6 @@ This dashboard compares control and treatment performance across CTR, inquiry ra
 | **Production extension** | Real platform deployment | Real clickstream logs, real LLM scripts, CRM integration, online A/B testing, safety guardrails |
 
 ---
-
 ## 🛠️ Project Structure
 
 ```text
@@ -275,6 +274,7 @@ AI-lead-generation-recommendation-analytics/
 │   ├── data_pipeline.py             # Data cleaning and synthetic funnel generation
 │   ├── intent_engine.py             # Intent feature extraction and lead scoring support
 │   ├── recommendation_strategy.py   # Recommendation strategy logic
+│   ├── seller_action_engine.py      # LLM-inspired seller next-best-action logic
 │   └── utils.py                     # Shared utility functions
 │
 ├── outputs/

@@ -8,12 +8,14 @@ under the src/ folder are organised.
 
 The full end-to-end analytical workflow is documented in the notebook/ folder,
 where raw data loading, data cleaning, SQL analysis, funnel construction,
-lead scoring, recommendation evaluation, and Tableau-ready outputs are generated.
+intent classification, lead scoring, recommendation evaluation, LLM-inspired
+seller action generation, and Tableau-ready outputs are generated.
 
 Modules:
 - DataPipeline: transaction cleaning and synthetic behavioural funnel generation
 - IntentEngine: intent feature extraction and lead scoring model
 - RecommendationSystem: popularity-based and intent-aware recommendation strategies
+- SellerActionEngine: LLM-inspired seller next-best-action logic
 """
 
 import logging
@@ -21,6 +23,7 @@ import logging
 from src.data_pipeline import DataPipeline
 from src.intent_engine import IntentEngine
 from src.recommendation_strategy import RecommendationSystem
+from src.seller_action_engine import assign_seller_action, generate_seller_actions, summarise_seller_actions
 
 
 logging.basicConfig(
@@ -56,12 +59,20 @@ def run_pipeline_overview() -> None:
     logger.info("RecommendationSystem requires item_catalog and interaction_history.")
     logger.info("These inputs are generated through the notebook workflow.")
 
+    logger.info("Initialising seller action engine functions...")
+    seller_action_functions = [
+        assign_seller_action.__name__,
+        generate_seller_actions.__name__,
+        summarise_seller_actions.__name__,
+    ]
+
     logger.info("Core modules loaded successfully:")
     logger.info(f"- DataPipeline: {data_pipeline.__class__.__name__}")
     logger.info(f"- IntentEngine: {intent_engine.__class__.__name__}")
     logger.info("- RecommendationSystem: available after loading item catalog and interaction history")
+    logger.info(f"- SellerActionEngine functions: {seller_action_functions}")
 
-    logger.info("For the full workflow, run notebooks 01 to 07 in the notebook/ folder.")
+    logger.info("For the full workflow, run notebooks 01 to 08 in the notebook/ folder.")
     logger.info("=== Pipeline overview completed ===")
 
 
