@@ -324,8 +324,59 @@ All recommendation fields from `fact_recommendations.csv` are also included.
 | `lead_scoring_feature_importance.csv` | Feature importance from the lead scoring model |
 | `lead_score_model_summary_by_segment.csv` | Model-based lead score summary by user value segment |
 
----
 
+> **Note on LLM-inspired fields:**  
+> The current version uses transparent rule-based and LLM-inspired logic to simulate how customer intent and seller next-best-action recommendations could be structured in a production LLM workflow. It does not call a live LLM API. In a production environment, this layer could be replaced or enhanced with an LLM service for intent extraction, reason generation, and seller message personalisation.
+### LLM-Inspired Seller Action Outputs
+
+#### `outputs/tables/llm_seller_action_recommendations.csv`
+
+This table converts recommendation outputs, lead scoring results, customer intent signals, and seller-level context into seller-facing next-best-action recommendations.
+
+| Field | Description |
+|---|---|
+| `user_id` | User identifier used for lead and recommendation matching |
+| `recommended_product_id` | Product recommended to the user |
+| `recommended_seller_id` | Seller associated with the recommended product |
+| `recommended_category` | Product category of the recommended item |
+| `preferred_category` | User's preferred or historically inferred product category |
+| `strategy` | Recommendation strategy used, such as popularity-based, category-preference, or intent-aware |
+| `experiment_group` | A/B test group assigned to the recommendation |
+| `recommendation_score` | Ranking score from the recommendation strategy |
+| `product_avg_price` | Average price of the recommended product |
+| `product_avg_review_score` | Average review score of the recommended product |
+| `product_high_intent_rate` | Share of high-intent users associated with the product |
+| `seller_avg_review_score` | Average review score of the recommended seller |
+| `seller_late_delivery_rate` | Seller-level late delivery rate |
+| `user_value_segment` | User value segment, such as High Value, Medium Value, or Low Value |
+| `traffic_source` | Simulated or assigned traffic acquisition source |
+| `device_type` | Simulated or assigned user device type |
+| `intent_category` | Customer intent category used to guide seller action logic |
+| `purchase_intent` | Purchase intent label, such as low, medium, or high |
+| `lead_score` | User-level lead score from the rule-based scoring layer |
+| `model_lead_score` | Model-derived lead score proxy |
+| `model_high_intent_probability` | Estimated probability that the user is a high-intent lead |
+| `high_intent_flag` | Binary flag indicating whether the user is classified as high intent |
+| `seller_action_type` | Recommended seller action type |
+| `seller_action_priority` | Priority level of the recommended seller action |
+| `seller_action_message` | Seller-facing next-best-action message |
+| `llm_style_explanation` | Human-readable explanation of why the seller action is recommended |
+| `recommendation_date` | Date when the recommendation record was generated |
+
+#### `outputs/tables/llm_seller_action_summary.csv`
+
+This table summarises seller action recommendations by customer intent and action type.
+
+| Field | Description |
+|---|---|
+| `intent_category` | Customer intent category |
+| `seller_action_type` | Recommended seller action type |
+| `seller_action_priority` | Priority level of the action |
+| `action_count` | Number of recommendations assigned to this action group |
+| `avg_lead_score` | Average lead score within the action group |
+| `avg_recommendation_score` | Average recommendation score within the action group |
+
+---
 ## 5. Key Derived Fields
 
 | Field | Description |
@@ -364,7 +415,8 @@ Synthetic fields include:
 - Acquisition and device attributes: `traffic_source`, `device_type`
 - Funnel behaviour flags: `viewed`, `clicked`, `added_to_cart`, `inquired`, `purchased`
 - Experiment outcome fields: `click_probability`, `inquiry_probability`, `purchase_probability`, `clicked`, `inquired`, `purchased`, `revenue`
--This table contains synthetic A/B test outcomes used to compare popularity-based and intent-aware recommendation strategies. Key outcome fields include `clicked`, `inquired`, `purchased`, and `revenue`.
+
+The A/B test table contains synthetic experiment outcomes used to compare popularity-based and intent-aware recommendation strategies. Key outcome fields include `clicked`, `inquired`, `purchased`, and `revenue`.
 
 Rather than treating the absence of real clickstream logs as a blocker, these fields were built on reproducible business logic and probabilistic generation rules. The synthetic data layer creates a realistic marketplace environment for demonstrating advanced product analytics workflows, including full-funnel conversion analysis, high-intent lead identification, recommendation strategy comparison, and experiment evaluation.
 

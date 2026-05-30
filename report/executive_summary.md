@@ -1,8 +1,8 @@
-# Executive Summary: AI-Powered Recommendation & Lead Analytics
+# Executive Summary: AI-Powered Lead Generation, Recommendation & Seller Action Analytics
 
 ## The Bottom Line
 
-This project shows that moving beyond popularity-based recommendation can create measurable commercial upside. By engineering an intent-aware recommendation strategy on top of **96,478 e-commerce orders**, the experiment framework achieved a **+44.9% incremental lift in revenue per user** and a **+31.4% increase in purchase rate** compared with a popularity-based baseline.
+This project shows that moving beyond popularity-based recommendation can create measurable commercial upside. By engineering an intent-aware recommendation strategy on top of **96,478 e-commerce orders**, the experiment framework achieved a **+44.9% incremental lift in revenue per user** and a **+31.4% increase in purchase rate** compared with a popularity-based baseline. Beyond scoring and recommending, the workflow also translates intent and lead signals into seller-facing next-best actions, making the output closer to a practical SMB growth product rather than a standalone analytics dashboard.
 
 In simple terms: better intent signals led to better recommendations, and better recommendations drove stronger full-funnel outcomes.
 
@@ -55,6 +55,14 @@ I compared a popularity-based baseline with an intent-aware recommendation strat
 
 The experiment showed that relevance based on intent can outperform popularity alone, especially at deeper funnel stages where purchase and revenue matter most.
 
+### 5. LLM-Inspired Seller Action Layer
+
+To make the recommendation output more actionable for SMB sellers, I added an LLM-inspired seller action layer. This layer translates user intent, lead score, recommended product, seller context, and recommendation strength into next-best-action recommendations.
+
+Instead of only saying which product should be recommended, the system suggests what the seller should do next, such as follow up with high-intent users, provide delivery reassurance, highlight product quality, offer price-sensitive incentives, or prioritise customer education.
+
+This makes the project closer to a real AI product workflow: data signals are converted into operational actions that sellers can understand and execute.
+
 ---
 
 ## Key Commercial Results
@@ -100,6 +108,12 @@ The intent-aware strategy improved conversion and revenue metrics, but product d
 
 **Business implication:** the next version should include diversity-aware re-ranking so that incremental lift does not come at the cost of overly narrow product exposure or internal traffic cannibalization.
 
+### 5. Seller actions are the bridge between model output and business impact
+
+Lead scores and recommendation rankings are useful, but SMB sellers need clear actions rather than raw model scores. The LLM-inspired seller action layer turns intent categories and lead quality signals into practical next-best actions.
+
+**Business implication:** AI systems for SMB growth should not stop at prediction. They should explain what to do next, who to prioritise, and which message or offer is most relevant for each customer segment.
+
 ---
 
 ## Path to Production
@@ -120,6 +134,9 @@ To turn this analytical framework into a live recommendation and lead scoring en
 
 5. **Run a production A/B test**  
    Validate the framework with live users, real conversion labels, and guardrail metrics such as refund rate, delivery satisfaction, repeat purchase rate, and seller exposure distribution.
+
+6. **Operationalise seller-facing action delivery**  
+   Connect the next-best-action layer to seller tools, CRM workflows, live-stream preparation dashboards, or seller notification systems so that recommendations can directly support seller execution.
 
 ---
 

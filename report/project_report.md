@@ -7,7 +7,7 @@
 ![Tableau](https://img.shields.io/badge/Tableau-Dashboard-orange)
 ![Lead Scoring](https://img.shields.io/badge/Lead%20Scoring-Rule%20Automation-green)
 ![AB Testing](https://img.shields.io/badge/AB%20Testing-Incremental%20Lift-purple)
-![LLM Layer](https://img.shields.io/badge/LLM%20Layer-Seller%20Actions-pink)
+![LLM-Inspired Layer](https://img.shields.io/badge/LLM--Inspired%20Layer-Seller%20Actions-pink)
 ![Product Analytics](https://img.shields.io/badge/Product%20Analytics-SMB%20Growth-blueviolet)
 
 ## Table of Contents
@@ -21,7 +21,7 @@
 - [7. Intent Classification Layer](#7-intent-classification-layer)
 - [8. Lead Score Automation and Feature Importance Analysis](#8-lead-score-automation-and-feature-importance-analysis)
 - [9. Recommendation Strategy Design](#9-recommendation-strategy-design)
-- [10. LLM-Enhanced Seller Action Layer](#10-llm-enhanced-seller-action-layer)
+- [10. LLM-Inspired Seller Action Layer](#10-llm-inspired-seller-action-layer)
 - [11. Simulated AB Test Evaluation](#11-simulated-ab-test-evaluation)
 - [12. Tableau Dashboard Analysis](#12-tableau-dashboard-analysis)
 - [13. Key Findings and Business Recommendations](#13-key-findings-and-business-recommendations)
@@ -33,7 +33,7 @@
 
 ## 1. Introduction
 
-> **TL;DR:** Engineered a synthetic funnel on 96K+ Olist transactions, designed an intent-aware recommendation system, and added an LLM-style seller action layer to translate lead scores into practical next-best actions. Evaluated via a simulated A/B test, the strategy drove a **+44.9% lift in ARPU** and **+31.4% in purchase rate** over popularity-based baselines.
+> **TL;DR:** Engineered a synthetic funnel on 96K+ Olist transactions, designed an intent-aware recommendation system, and added an LLM-style seller action layer to translate lead scores into practical next-best actions. Evaluated via a simulated A/B test, the simulated offline experiment showed a **+44.9% lift in ARPU** and a **+31.4% lift in purchase rate** over popularity-based baselines.
 
 In this project, I architected an end-to-end analytics workflow for e-commerce lead generation, customer intent analysis, recommendation strategy design, and experiment evaluation.
 
@@ -473,7 +473,7 @@ The intent-aware strategy achieved the highest average recommendation score, whi
 **Business implication:** an intent-aware ranking strategy should be combined with diversity constraints. A stronger version would balance relevance, product diversity, seller exposure, delivery reliability, and category coverage.
 
 ---
-## 10. LLM-Enhanced Seller Action Layer
+## 10. LLM-Inspired Seller Action Layer
 
 The recommendation strategy produces product and seller candidates, but a seller-facing lead generation product should not stop at ranking items. For small and medium-sized sellers, the more practical question is:
 
