@@ -45,13 +45,15 @@ The workflow is designed around four business questions:
 - Can a recommendation strategy use intent, review quality, and seller reliability instead of relying only on popularity?
 - Does the intent-aware strategy produce measurable incremental lift in the experiment framework?
 
-The final output is not just a notebook exercise. It includes cleaned analytical tables, SQL-based KPI analysis, a synthetic funnel, an explainable intent layer, lead score automation, recommendation strategy evaluation, A/B test analysis, and Tableau dashboards for stakeholder communication.
+The final output is not just a notebook exercise. It includes cleaned analytical tables, SQL-based KPI analysis, a synthetic funnel, an explainable intent layer, lead score automation, recommendation strategy evaluation, an LLM-style seller action layer, A/B test analysis, and Tableau dashboards for stakeholder communication.
 
 > **Key takeaway:** I used a real transaction dataset to build the kind of analytical layer a marketplace would need before scaling lead generation and recommendation decisions.
 
 ## 2. Business Problem
 
 For an e-commerce marketplace, recommendation is not only a ranking problem. A platform needs to understand which users are most likely to convert, which products and sellers are commercially reliable, and whether a more targeted recommendation strategy can outperform a simple popularity baseline.
+
+From the seller side, the problem is also operational. SMB sellers may not have a dedicated analytics or growth team, so they do not only need a ranked product list. They need to know which users should be prioritised, why those users are valuable, and what follow-up action should be taken next.
 
 A basic popularity-based recommendation strategy is easy to implement, but it ignores several important signals:
 
@@ -453,6 +455,8 @@ The seller action layer generated the following distribution:
 | personalised_product_follow_up | Medium | 162 | 1.08% |
 | offer_customer_support | Medium | 129 | 0.86% |
 
+For delivery reliability and discount/bundle actions, priority is further split by lead strength. Higher-scoring users receive high-priority action labels, while lower-scoring users remain medium priority.
+
 The high share of limited-time offers should be interpreted carefully. This layer is built on top of the recommendation candidate table rather than the full user base. Therefore, the action distribution is naturally skewed toward conversion-oriented users. It reflects prioritisation within a pre-filtered lead pool, not the behaviour of all platform users.
 
 ### 10.5 Intent-action validation
@@ -469,7 +473,7 @@ To validate whether the action layer behaves reasonably, I checked the relations
 | general_negative | nurture_with_general_content | 687 | 100.0% |
 | neutral_or_unclear | mixed actions based on lead score | 720 | 100.0% |
 
-For neutral or unclear users, the action layer further uses lead score and purchase intent to split them into direct conversion, personalised follow-up, or soft nurturing actions. This makes the layer more flexible than a one-to-one intent mapping.
+For `neutral_or_unclear` users, the layer does not apply a fixed one-to-one mapping. Instead, it uses lead score and purchase intent to split users into direct conversion, personalised follow-up, or soft nurturing actions: **62.9%** were assigned to `send_limited_time_offer`, **22.5%** to `personalised_product_follow_up`, and **14.6%** to `nurture_with_general_content`.
 
 The validation confirms that the seller action layer maps user intent categories to context-aware seller actions. Ready-to-purchase users are mapped to limited-time offers, price-sensitive users to discount or bundle offers, delivery-concerned users to delivery reliability messages, product-quality-concerned users to social proof, and after-sales users to customer support.
 
@@ -637,7 +641,7 @@ The project produced several findings that can be translated into business actio
 
 **Insight:** the LLM-enhanced seller action layer generated **15,000 seller-facing recommendations** across seven action types. The largest categories were `send_limited_time_offer` (**49.86%**), `highlight_delivery_reliability` (**19.94%**), and `send_discount_or_bundle` (**18.72%**).
 
-**Impact:** lead scores and recommendation scores are useful for ranking, but they are not enough for SMB sellers. Sellers need to know what action to take next. By translating intent categories into seller-facing actions, the system becomes more usable for non-technical sellers.
+**Impact:** lead scores and recommendation scores are useful for ranking, but they are not enough for SMB sellers. Many SMB sellers do not have the time or analytical resources to interpret raw model outputs, so they need the platform to translate signals into simple next-best actions. By translating intent categories into seller-facing actions, the system becomes more usable for non-technical sellers.
 
 **Action:** integrate the seller action layer into a seller dashboard or CRM-style workflow. The platform could allow sellers to filter high-priority leads, view recommended actions, and generate follow-up scripts for live selling, product messages, or campaign outreach.
 
@@ -703,7 +707,7 @@ The intent classification layer could also be upgraded with an actual large lang
 
 The recommendation strategy could be improved with a diversity-aware re-ranking layer that balances relevance with catalog exposure, seller fairness, category coverage, delivery reliability, and cold-start handling. This would reduce over-concentration while maintaining conversion performance.
 
-The LLM-enhanced seller action layer could also be upgraded from transparent rule logic to a real LLM workflow. For example, the model could generate personalised seller scripts, livestream talking points, buyer objection handling messages, and CRM follow-up templates. These outputs should be evaluated with seller adoption rate, message click-through rate, inquiry conversion, purchase conversion, and seller satisfaction metrics.
+The LLM-enhanced seller action layer could also be upgraded from transparent rule logic to a real LLM workflow. For example, the model could generate personalised seller scripts, livestream talking points, buyer objection handling messages, and CRM follow-up templates. These outputs should be evaluated with seller adoption rate, message click-through rate, inquiry conversion, purchase conversion, and seller satisfaction metrics. In production, these generated messages should also be checked with content safety, seller fairness, hallucination control, and brand consistency guardrails.
 
 From an engineering perspective, the lead scoring and recommendation logic could be packaged into a lightweight API service. In a production-style design, new user events could update intent scores in near real time, and recommendations could be refreshed through a scheduled or streaming pipeline.
 
