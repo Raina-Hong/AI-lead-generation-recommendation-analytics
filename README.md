@@ -39,36 +39,26 @@ It demonstrates skills directly relevant to AI product analytics and recommendat
 - turning model outputs into seller-facing business actions;
 - communicating insights through Tableau dashboards and structured reports.
 
-### 🏗️ System Architecture & Workflow
+## 🏗️ System Architecture & Workflow
 
 Instead of only predicting scores, this workflow translates raw marketplace data into seller-facing growth actions.
 
 ```mermaid
-graph TD
-    subgraph A[1. Data Pipeline & Synthetic Funnel]
-        A1[96K+ Raw Transactions] --> A2[DuckDB Data Cleaning & GMV Analysis]
-        A2 --> A3[Synthetic Event Engine]
-        A3 --> A4[Behavioral Funnel Logs: View / Click / Cart / Inquiry]
-    end
+flowchart LR
+    A[Raw Olist Data<br/>96K+ Transactions] --> B[Data Cleaning<br/>DuckDB + Python]
+    B --> C[Synthetic Funnel<br/>View / Click / Cart / Inquiry / Purchase]
 
-    subgraph B[2. Intent Engine & Lead Scoring]
-        A4 --> B1[Intent Classification Layer]
-        B1 --> B2[Rule-Based + ML Proxy Lead Scoring]
-        B2 --> B3[Lead Score & High-Intent Flag]
-    end
+    C --> D[Intent Classification<br/>Review Text + Business Rules]
+    D --> E[Lead Scoring<br/>Rule-Based + ML Proxy]
+    E --> F[High-Intent Users<br/>Lead Quality Segments]
 
-    subgraph C[3. Strategy & Seller Action Layer]
-        B3 --> C1[Intent-Aware Recommendation]
-        C1 --> C2[Product / Seller Matches]
-        C2 --> C3[LLM-Style Next-Best-Action Layer]
-        C3 --> C4[A/B Test & Guardrail Metrics]
-    end
+    F --> G[Intent-Aware<br/>Recommendation Strategy]
+    G --> H[Product-Seller<br/>Matching]
+    H --> I[LLM-Inspired<br/>Next-Best Actions]
+    I --> J[A/B Test Evaluation<br/>CTR / Purchase / ARPU / Guardrails]
 
-    style B3 fill:#f9f,stroke:#333,stroke-width:2px
-    style C3 fill:#d4edda,stroke:#28a745,stroke-width:2px
-    style C4 fill:#bbf,stroke:#333,stroke-width:2px
+    J --> K[Tableau Dashboards<br/>Executive + Product Insights]
 ```
-
 ---
 
 ## 🏆 Key Commercial Results
@@ -97,14 +87,11 @@ Raw scores are not enough for SMB sellers. The project adds an **LLM-style Next-
 
 | Output Area | Key Files | Purpose |
 |---|---|---|
-| Core analytical datasets | `data/final/fact_user_events.csv`, `fact_reviews_llm.csv`, `fact_lead_scores.csv`, `fact_recommendations.csv`, `fact_recommendation_experiment.csv` | Final modelling and dashboard-ready datasets for funnel analysis, intent classification, lead scoring, recommendation, and A/B testing |
-| Marketplace business analysis | `overall_kpi_summary.csv`, `monthly_gmv_trend.csv`, `top_sellers_by_gmv.csv`, `category_performance.csv`, `customer_value_analysis.csv` | Executive-level marketplace performance, seller ranking, category performance, and customer value analysis |
-| Funnel and lead quality analysis | `funnel_summary.csv`, `daily_funnel_trend.csv`, `user_segment_funnel.csv`, `traffic_source_funnel.csv`, `lead_score_by_user_segment.csv`, `lead_score_by_category.csv` | User journey, conversion funnel, lead score, and high-intent customer analysis |
-| Intent and review analytics | `intent_distribution.csv`, `intent_category_summary.csv`, `category_review_score.csv`, `delivery_delay_impact.csv` | Review sentiment, purchase intent, category-level satisfaction, and customer experience analysis |
-| Recommendation strategy outputs | `recommendation_user_level.csv`, `recommendation_strategy_summary.csv`, `recommendation_category_summary.csv` | User-level recommendation results and strategy/category-level recommendation performance |
-| A/B testing outputs | `ab_test_summary.csv`, `ab_test_uplift_summary.csv`, `ab_test_significance.csv`, `ab_test_segment_summary.csv`, `ab_test_category_summary.csv` | Simulated experiment evaluation across CTR, inquiry rate, purchase rate, revenue, segment, and category |
-| LLM-inspired seller actions | `llm_seller_action_recommendations.csv`, `llm_seller_action_summary.csv` | Seller-facing next-best-action recommendations based on intent, lead score, and recommendation output |
-| Data quality outputs | `missing_value_summary.csv`, `raw_data_summary.csv` | Data coverage, missing value checks, and raw table validation |
+| Final analytical datasets | `data/final/fact_user_events.csv`, `data/final/fact_reviews_llm.csv`, `data/final/fact_lead_scores.csv`, `data/final/fact_recommendations.csv`, `data/final/fact_recommendation_experiment.csv` | Dashboard-ready datasets for funnel analysis, intent classification, lead scoring, recommendation, and simulated A/B testing |
+| Business KPI tables | `outputs/tables/overall_kpi_summary.csv`, `outputs/tables/monthly_gmv_trend.csv`, `outputs/tables/top_sellers_by_gmv.csv`, `outputs/tables/category_performance.csv` | Executive-level marketplace performance, seller ranking, category performance, and GMV trend analysis |
+| Funnel & lead quality tables | `outputs/tables/funnel_summary.csv`, `outputs/tables/user_segment_funnel.csv`, `outputs/tables/traffic_source_funnel.csv`, `outputs/tables/lead_score_by_user_segment.csv` | User journey, conversion funnel, lead quality, and high-intent customer analysis |
+| Recommendation & experiment outputs | `outputs/tables/recommendation_strategy_summary.csv`, `outputs/tables/recommendation_category_summary.csv`, `outputs/tables/ab_test_summary.csv`, `outputs/tables/ab_test_uplift_summary.csv` | Recommendation performance and simulated control vs treatment experiment evaluation |
+| LLM-inspired seller action outputs | `outputs/tables/llm_seller_action_recommendations.csv`, `outputs/tables/llm_seller_action_summary.csv` | Seller-facing next-best-action recommendations based on intent, lead score, and recommendation outputs |
 | Tableau dashboards | `dashboard/tableau_screenshots/` and Tableau Public links | Stakeholder-facing visual analytics outputs |
 
 ## 👥 User Persona and User Journey
