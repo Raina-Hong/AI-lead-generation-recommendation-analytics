@@ -6,8 +6,6 @@
 ![Scikit-Learn](https://img.shields.io/badge/Machine%20Learning-Scikit--Learn-orange.svg)
 ![Tableau](https://img.shields.io/badge/BI-Tableau-blueviolet.svg)
 ![A/B Testing](https://img.shields.io/badge/Experiment-A%2FB%20Testing-green.svg)
-![LLM Layer](https://img.shields.io/badge/LLM%20Layer-Seller%20Actions-pink)
-![Product Analytics](https://img.shields.io/badge/Product%20Analytics-SMB%20Growth-blueviolet)
 
 > **TL;DR:** I built an end-to-end lead generation and recommendation analytics workflow on **96K+ e-commerce orders** from the Olist public dataset. The project combines transaction analysis, a synthetic behavioural event pipeline, rule-based intent classification, lead scoring automation, recommendation ranking, and Tableau dashboards. In the simulated experiment, the intent-aware recommendation strategy delivered a **+44.9% incremental lift in Revenue per User** and a **+31.4% increase in Purchase Rate** compared with a popularity-based baseline.
 
