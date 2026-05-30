@@ -19,12 +19,13 @@
 - [7. Intent Classification Layer](#7-intent-classification-layer)
 - [8. Lead Score Automation and Feature Importance Analysis](#8-lead-score-automation-and-feature-importance-analysis)
 - [9. Recommendation Strategy Design](#9-recommendation-strategy-design)
-- [10. Simulated AB Test Evaluation](#10-simulated-ab-test-evaluation)
-- [11. Tableau Dashboard Analysis](#11-tableau-dashboard-analysis)
-- [12. Key Findings and Business Recommendations](#12-key-findings-and-business-recommendations)
-- [13. Production Considerations and Limitations](#13-production-considerations-and-limitations)
-- [14. Future Improvements](#14-future-improvements)
-- [15. Conclusion](#15-conclusion)
+- [10. LLM-Enhanced Seller Action Layer](#10-llm-enhanced-seller-action-layer)
+- [11. Simulated AB Test Evaluation](#11-simulated-ab-test-evaluation)
+- [12. Tableau Dashboard Analysis](#12-tableau-dashboard-analysis)
+- [13. Key Findings and Business Recommendations](#13-key-findings-and-business-recommendations)
+- [14. Production Considerations and Limitations](#14-production-considerations-and-limitations)
+- [15. Future Improvements](#15-future-improvements)
+- [16. Conclusion](#16-conclusion)
 
 
 ## 1. Introduction
@@ -378,8 +379,127 @@ The intent-aware strategy achieved the highest average recommendation score, whi
 **Business implication:** an intent-aware ranking strategy should be combined with diversity constraints. A stronger version would balance relevance, product diversity, seller exposure, delivery reliability, and category coverage.
 
 ---
+## 10. LLM-Enhanced Seller Action Layer
 
-## 10. Simulated AB Test Evaluation
+The recommendation strategy produces product and seller candidates, but a seller-facing lead generation product should not stop at ranking items. For small and medium-sized sellers, the more practical question is:
+
+> Which potential customer should I follow up with, why does this customer matter, and what action should I take next?
+
+To address this gap, I added an **LLM-enhanced seller action layer**. This layer translates user intent, lead score, recommendation output, and seller quality signals into seller-facing next-best-action recommendations.
+
+The output files are:
+
+- `outputs/tables/llm_seller_action_recommendations.csv`
+- `outputs/tables/llm_seller_action_summary.csv`
+
+The main output contains **15,000 seller action recommendations**, matching the recommendation candidate table generated from **5,000 users × 3 recommendation strategies**. Each row includes the recommended product, recommended seller, user intent category, lead score, seller action type, seller action priority, seller-facing message, and natural-language explanation.
+
+### 10.1 Why this layer matters
+
+In an SMB lead generation scenario, sellers usually do not need raw model scores. They need actionable guidance. A lead score such as `92` is useful for ranking, but it does not directly tell the seller what to do.
+
+This layer converts analytical outputs into practical seller actions, such as:
+
+- sending a limited-time offer;
+- offering a discount or bundle;
+- highlighting delivery reliability;
+- showing customer reviews and social proof;
+- providing customer support or return guidance;
+- sending a personalised product follow-up;
+- using soft nurturing content for unclear or negative signals.
+
+This makes the system closer to a real AI-assisted seller growth product. Instead of asking sellers to interpret model output manually, the platform can translate user signals into clear and explainable next steps.
+
+### 10.2 Input signals
+
+The seller action layer uses four groups of signals:
+
+| Signal group | Example fields | Purpose |
+|---|---|---|
+| User intent | `intent_category`, `purchase_intent`, `sentiment` | Understand what the user may care about |
+| Lead quality | `lead_score`, `model_lead_score`, `high_intent_flag` | Prioritise users with stronger conversion potential |
+| Recommendation output | `recommended_product_id`, `recommended_seller_id`, `strategy`, `recommendation_score` | Connect the action to a product or seller candidate |
+| Seller and product quality | `seller_avg_review_score`, `seller_late_delivery_rate`, `product_avg_review_score` | Add operational risk context before seller follow-up |
+
+This design keeps the layer explainable. In a production system, a real LLM could generate more personalised seller scripts, but the rule-based version is useful for prototyping because the decision logic can be audited.
+
+### 10.3 Seller action mapping logic
+
+The action rules were designed around common SMB seller needs:
+
+| Intent or lead signal | Seller action |
+|---|---|
+| Ready to purchase | Send limited-time offer |
+| Price sensitive | Send discount or bundle |
+| Delivery concern | Highlight delivery reliability |
+| Product quality concern | Show social proof |
+| After-sales issue | Offer customer support |
+| General negative signal | Nurture with general content |
+| Neutral or unclear signal | Split by lead score into limited-time offer, personalised follow-up, or soft nurturing |
+
+This mapping ensures that the system does not simply push generic promotions to every user. Different intent categories are translated into different seller actions.
+
+### 10.4 Output summary
+
+The seller action layer generated the following distribution:
+
+| Seller Action Type | Priority | Recommendation Count | Share |
+|---|---|---:|---:|
+| send_limited_time_offer | High | 7,479 | 49.86% |
+| highlight_delivery_reliability | High / Medium | 2,991 | 19.94% |
+| send_discount_or_bundle | High / Medium | 2,808 | 18.72% |
+| nurture_with_general_content | Medium | 792 | 5.28% |
+| show_social_proof | Medium | 639 | 4.26% |
+| personalised_product_follow_up | Medium | 162 | 1.08% |
+| offer_customer_support | Medium | 129 | 0.86% |
+
+The high share of limited-time offers should be interpreted carefully. This layer is built on top of the recommendation candidate table rather than the full user base. Therefore, the action distribution is naturally skewed toward conversion-oriented users. It reflects prioritisation within a pre-filtered lead pool, not the behaviour of all platform users.
+
+### 10.5 Intent-action validation
+
+To validate whether the action layer behaves reasonably, I checked the relationship between intent category and generated seller action.
+
+| Intent Category | Main Seller Action | Count | Share Within Intent |
+|---|---|---:|---:|
+| ready_to_purchase | send_limited_time_offer | 7,023 | 100.0% |
+| price_sensitive | send_discount_or_bundle | 2,808 | 100.0% |
+| delivery_concern | highlight_delivery_reliability | 2,991 | 100.0% |
+| product_quality_concern | show_social_proof | 639 | 100.0% |
+| after_sales_issue | offer_customer_support | 129 | 100.0% |
+| general_negative | nurture_with_general_content | 687 | 100.0% |
+| neutral_or_unclear | mixed actions based on lead score | 720 | 100.0% |
+
+For neutral or unclear users, the action layer further uses lead score and purchase intent to split them into direct conversion, personalised follow-up, or soft nurturing actions. This makes the layer more flexible than a one-to-one intent mapping.
+
+The validation confirms that the seller action layer maps user intent categories to context-aware seller actions. Ready-to-purchase users are mapped to limited-time offers, price-sensitive users to discount or bundle offers, delivery-concerned users to delivery reliability messages, product-quality-concerned users to social proof, and after-sales users to customer support.
+
+### 10.6 Business interpretation
+
+This layer changes the project from a recommendation model into a seller decision-support product.
+
+Without this layer, the system can answer:
+
+> Which product should be recommended?
+
+With this layer, the system can also answer:
+
+> What should the seller do next, and why?
+
+For example, instead of showing a seller only a high lead score, the system can generate a recommendation such as:
+
+> This user is a high-priority lead. Send a limited-time offer because the user shows strong purchase intent.
+
+This is particularly relevant for SMB sellers because they may not have dedicated analytics or growth teams. The product should reduce decision-making friction and help sellers act on lead generation insights quickly.
+
+### 10.7 Notes on output granularity
+
+The seller action type is generated at the user-intent level, while recommendation candidates are generated at the user-strategy level. Therefore, the same user may receive the same seller action across different recommendation strategies, while the recommended product or seller can still differ by strategy.
+
+This is intentional. The action answers what the seller should do, while the recommendation strategy determines which product or seller candidate should be attached to that action.
+
+---
+
+## 11. Simulated AB Test Evaluation
 
 A controlled experiment framework was designed to compare the popularity-based recommendation strategy with the intent-aware recommendation strategy.
 
@@ -413,11 +533,11 @@ In short: intent-aware ranking drives deeper conversions, not just superficial c
 
 ---
 
-## 11. Tableau Dashboard Analysis
+## 12. Tableau Dashboard Analysis
 
 Three Tableau dashboards were created to turn the analysis into stakeholder-facing outputs. The dashboards are not just visual summaries; each one answers a different business question.
 
-### 11.1 Dashboard 1: Executive Overview
+### 12.1 Dashboard 1: Executive Overview
 
 ![Dashboard 1: Executive Overview](../dashboard/tableau_screenshots/dashboard_1_executive_overview.png)
 
@@ -450,7 +570,7 @@ The A/B uplift chart at the bottom connects the business overview directly to th
 
 **Dashboard insight:** the marketplace has strong transaction volume and category concentration, and the simulated experiment suggests that intent-aware recommendation can improve not only engagement but also revenue. For business users, this dashboard answers the question: *Is this recommendation strategy worth further testing?*
 
-### 11.2 Dashboard 2: User Intent & Lead Quality
+### 12.2 Dashboard 2: User Intent & Lead Quality
 
 ![Dashboard 2: User Intent and Lead Quality](../dashboard/tableau_screenshots/dashboard_2_user_intent_lead_quality.png)
 
@@ -472,7 +592,7 @@ The high-intent rate by user segment shows that **High Value users have the high
 
 **Dashboard insight:** the intent layer turns raw review, delivery, and behavioural signals into business-readable lead quality indicators. This dashboard answers the question: *Which users and categories should the business prioritise for targeted recommendation or follow-up?*
 
-### 11.3 Dashboard 3: Recommendation A/B Test Performance
+### 12.3 Dashboard 3: Recommendation A/B Test Performance
 
 ![Dashboard 3: Recommendation A/B Test Performance](../dashboard/tableau_screenshots/dashboard_3_recommendation_ab_test.png)
 
@@ -501,7 +621,7 @@ Dashboard links are available in `dashboard/tableau_links.md`.
 
 ---
 
-## 12. Key Findings and Business Recommendations
+## 13. Key Findings and Business Recommendations
 
 The project produced several findings that can be translated into business actions. The most important result is placed first, following a bottom-line-first structure.
 
@@ -513,7 +633,15 @@ The project produced several findings that can be translated into business actio
 
 **Action:** move beyond pure popularity-based recommendation and continue testing ranking logic that combines user intent, product quality, seller quality, and fulfilment reliability. The next test should also monitor guardrail metrics such as refund rate, delivery complaints, seller concentration, and potential cannibalization of already high-performing products.
 
-### Finding 2: Delivery reliability is a conversion and satisfaction risk
+### Finding 2: Seller-facing actions make lead scores operational
+
+**Insight:** the LLM-enhanced seller action layer generated **15,000 seller-facing recommendations** across seven action types. The largest categories were `send_limited_time_offer` (**49.86%**), `highlight_delivery_reliability` (**19.94%**), and `send_discount_or_bundle` (**18.72%**).
+
+**Impact:** lead scores and recommendation scores are useful for ranking, but they are not enough for SMB sellers. Sellers need to know what action to take next. By translating intent categories into seller-facing actions, the system becomes more usable for non-technical sellers.
+
+**Action:** integrate the seller action layer into a seller dashboard or CRM-style workflow. The platform could allow sellers to filter high-priority leads, view recommended actions, and generate follow-up scripts for live selling, product messages, or campaign outreach.
+
+### Finding 3: Delivery reliability is a conversion and satisfaction risk
 
 **Insight:** late deliveries had an average review score of **2.33**, compared with **4.21** for non-late deliveries. The negative review rate increased from **11.32%** to **61.32%** when orders were late.
 
@@ -521,7 +649,7 @@ The project produced several findings that can be translated into business actio
 
 **Action:** include seller delivery reliability in recommendation ranking. Sellers with high late-delivery rates should be down-weighted, especially for high-intent or high-value users. The platform could also test fulfilment reassurance messages, faster shipping options, or delivery protection at checkout.
 
-### Finding 3: Price-sensitive users unlock hidden GMV opportunities
+### Finding 4: Price-sensitive users unlock hidden GMV opportunities
 
 **Insight:** the `price_sensitive` segment generated **BRL 6.69M GMV** and had a **92.59% high-intent rate**.
 
@@ -529,7 +657,7 @@ The project produced several findings that can be translated into business actio
 
 **Action:** avoid blanket deprioritisation. Use targeted pricing strategies such as dynamic shipping incentives, time-sensitive bundles, threshold discounts, or coupon framing for high-intent users in this segment. The goal is to improve conversion while protecting margin.
 
-### Finding 4: Relevance and catalog exposure need to be balanced
+### Finding 5: Relevance and catalog exposure need to be balanced
 
 **Insight:** the intent-aware strategy achieved the highest average recommendation score, but its product diversity rate was only **0.20%**. Category-preference recommendation had a higher diversity rate of **2.10%**.
 
@@ -537,7 +665,7 @@ The project produced several findings that can be translated into business actio
 
 **Action:** add diversity-aware re-ranking to balance relevance with catalog exposure and seller fairness. For example, the system could limit repeated exposure of the same seller, enforce minimum category coverage, or apply a diversity penalty when too many recommendations come from the same product group.
 
-### Finding 5: User value segmentation improves prioritisation
+### Finding 6: User value segmentation improves prioritisation
 
 **Insight:** High Value users had the highest high-intent rate at **92.58%**, followed by Medium Value users at **90.99%** and Low Value users at **90.38%**.
 
@@ -547,7 +675,7 @@ The project produced several findings that can be translated into business actio
 
 ---
 
-## 13. Production Considerations and Limitations
+## 14. Production Considerations and Limitations
 
 The main production consideration is data availability. Olist is a public transaction dataset, so it does not include real front-end behavioural logs, non-converted visitor sessions, live recommendation exposure, or production experiment outcomes. I handled this by building a business-driven synthetic event pipeline, but a live version would need platform-level event tracking.
 
@@ -565,7 +693,7 @@ These limitations do not weaken the project design. They define the next enginee
 > **Key takeaway:** the project proves the analytics logic; productionisation would require event tracking, real-time infrastructure, monitoring, and marketplace guardrails.
 
 
-## 14. Future Improvements
+## 15. Future Improvements
 
 A stronger next version would add synthetic non-purchase sessions. This would allow the funnel to include users who drop off at view, click, add-to-cart, or inquiry stages before purchase, making the journey closer to a real acquisition funnel.
 
@@ -575,13 +703,15 @@ The intent classification layer could also be upgraded with an actual large lang
 
 The recommendation strategy could be improved with a diversity-aware re-ranking layer that balances relevance with catalog exposure, seller fairness, category coverage, delivery reliability, and cold-start handling. This would reduce over-concentration while maintaining conversion performance.
 
+The LLM-enhanced seller action layer could also be upgraded from transparent rule logic to a real LLM workflow. For example, the model could generate personalised seller scripts, livestream talking points, buyer objection handling messages, and CRM follow-up templates. These outputs should be evaluated with seller adoption rate, message click-through rate, inquiry conversion, purchase conversion, and seller satisfaction metrics.
+
 From an engineering perspective, the lead scoring and recommendation logic could be packaged into a lightweight API service. In a production-style design, new user events could update intent scores in near real time, and recommendations could be refreshed through a scheduled or streaming pipeline.
 
 The experiment design could also be extended with power analysis, minimum detectable effect calculation, experiment duration planning, and guardrail metrics such as refund rate, complaint rate, delivery delay, seller concentration, and cannibalization of existing best-selling products.
 
 ---
 
-## 15. Conclusion
+## 16. Conclusion
 
 This project proves that moving beyond popularity-based recommendation can create substantial commercial value.
 

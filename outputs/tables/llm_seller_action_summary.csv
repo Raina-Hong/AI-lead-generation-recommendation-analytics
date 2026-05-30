@@ -1,0 +1,10 @@
+seller_action_type,seller_action_priority,recommendation_count,avg_model_lead_score
+send_limited_time_offer,High,7479,99.54
+send_discount_or_bundle,High,2631,97.77
+highlight_delivery_reliability,High,2364,98.12
+nurture_with_general_content,Medium,792,40.25
+show_social_proof,Medium,639,75.98
+highlight_delivery_reliability,Medium,627,0.97
+send_discount_or_bundle,Medium,177,1.6
+personalised_product_follow_up,Medium,162,1.32
+offer_customer_support,Medium,129,78.08
