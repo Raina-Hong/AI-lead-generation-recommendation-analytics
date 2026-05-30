@@ -30,7 +30,7 @@
 
 ## 1. Introduction
 
-> **TL;DR:** Engineered a synthetic funnel on 96K+ Olist transactions and designed an intent-aware recommendation system. Evaluated via a simulated A/B test, the strategy drove a **+44.9% lift in ARPU** and **+31.4% in purchase rate** over popularity-based baselines. 
+> **TL;DR:** Engineered a synthetic funnel on 96K+ Olist transactions, designed an intent-aware recommendation system, and added an LLM-style seller action layer to translate lead scores into practical next-best actions. Evaluated via a simulated A/B test, the strategy drove a **+44.9% lift in ARPU** and **+31.4% in purchase rate** over popularity-based baselines.
 
 In this project, I architected an end-to-end analytics workflow for e-commerce lead generation, customer intent analysis, recommendation strategy design, and experiment evaluation.
 
@@ -64,11 +64,12 @@ A basic popularity-based recommendation strategy is easy to implement, but it ig
 - whether the user belongs to a higher-value customer segment;
 - whether the strategy improves downstream conversion and revenue metrics.
 
-This project answers three business questions:
+This project answers four business questions:
 
 1. **Lead generation:** How can high-intent users be identified from review, delivery, transaction, and behavioural signals?
 2. **Recommendation strategy:** Can product recommendation be improved by combining user intent, product quality, seller reliability, and category preference?
-3. **Experiment evaluation:** Under a controlled simulated experiment, does an intent-aware recommendation strategy outperform a popularity-based baseline?
+3. **Seller action support:** How can lead scores and intent labels be translated into seller-facing next-best actions?
+4. **Experiment evaluation:** Under a controlled simulated experiment, does an intent-aware recommendation strategy outperform a popularity-based baseline?
 
 ---
 
@@ -721,7 +722,7 @@ This project proves that moving beyond popularity-based recommendation can creat
 
 By combining user intent, review quality, seller reliability, delivery performance, and user value signals into an intent-aware ranking strategy, the experiment framework achieved a **44.9% incremental lift in revenue per user** and a **31.4% increase in purchase rate**. The gains were not limited to superficial clicks. They appeared deeper in the funnel, where the business impact is clearer.
 
-The project also shows why recommendation strategy needs guardrails. Intent-aware ranking improved conversion and revenue outcomes, but product diversity remained low. A stronger production version should balance relevance with catalog exposure, seller fairness, and long-term marketplace health.
+The project also shows why recommendation strategy needs guardrails. Intent-aware ranking improved conversion and revenue outcomes, but product diversity remained low. A stronger production version should balance relevance with catalog exposure, seller fairness, and long-term marketplace health. The LLM-style seller action layer further extends the workflow from ranking recommendations to operational decision support by translating intent and lead signals into concrete seller actions.
 
 The bottom line: intent-aware recommendation is commercially promising, but it should be scaled with measurement discipline and marketplace safeguards.
 
