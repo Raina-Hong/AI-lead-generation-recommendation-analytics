@@ -365,16 +365,14 @@ This table converts recommendation outputs, lead scoring results, customer inten
 
 #### `outputs/tables/llm_seller_action_summary.csv`
 
-This table summarises seller action recommendations by customer intent and action type.
+This table summarises seller action recommendations by action type and priority level.
 
 | Field | Description |
 |---|---|
-| `intent_category` | Customer intent category |
 | `seller_action_type` | Recommended seller action type |
-| `seller_action_priority` | Priority level of the action |
-| `action_count` | Number of recommendations assigned to this action group |
-| `avg_lead_score` | Average lead score within the action group |
-| `avg_recommendation_score` | Average recommendation score within the action group |
+| `seller_action_priority` | Priority level of the recommended seller action |
+| `recommendation_count` | Number of recommendations assigned to this seller action group |
+| `avg_model_lead_score` | Average model-derived lead score within the action group |
 
 ---
 ## 5. Key Derived Fields
