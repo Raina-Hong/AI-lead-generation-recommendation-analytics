@@ -7,6 +7,8 @@
 ![Tableau](https://img.shields.io/badge/Tableau-Dashboard-orange)
 ![Lead Scoring](https://img.shields.io/badge/Lead%20Scoring-Rule%20Automation-green)
 ![AB Testing](https://img.shields.io/badge/AB%20Testing-Incremental%20Lift-purple)
+![LLM Layer](https://img.shields.io/badge/LLM%20Layer-Seller%20Actions-pink)
+![Product Analytics](https://img.shields.io/badge/Product%20Analytics-SMB%20Growth-blueviolet)
 
 ## Table of Contents
 
@@ -39,11 +41,12 @@ The starting point was the public Olist Brazilian e-commerce dataset. It gives a
 
 That gap shaped the project design. Rather than treating the missing behavioural logs as a blocker, I built a **business-driven synthetic event pipeline** on top of the real transaction data. The pipeline uses transparent probability rules and commercial assumptions to reconstruct a plausible engagement journey around confirmed orders. In practice, this turns a static transaction dataset into a more realistic product analytics environment.
 
-The workflow is designed around four business questions:
+The workflow is designed around five business questions:
 
 - How is the marketplace performing across users, categories, sellers, and delivery quality?
 - Which users show stronger intent and should be prioritised as leads?
 - Can a recommendation strategy use intent, review quality, and seller reliability instead of relying only on popularity?
+- How can lead scores and intent labels be translated into seller-facing next-best actions?
 - Does the intent-aware strategy produce measurable incremental lift in the experiment framework?
 
 The final output is not just a notebook exercise. It includes cleaned analytical tables, SQL-based KPI analysis, a synthetic funnel, an explainable intent layer, lead score automation, recommendation strategy evaluation, an LLM-style seller action layer, A/B test analysis, and Tableau dashboards for stakeholder communication.
@@ -68,12 +71,13 @@ This framing shaped the project design. Instead of building only one recommendat
 
 `Data cleaning → SQL business analysis → Synthetic funnel → Intent classification → Lead scoring → Recommendation strategy → LLM-style seller action → A/B test evaluation`
 
-The project answers four business questions:
+The project answers five business questions:
 
-1. **Lead generation:** How can high-intent users be identified from review, delivery, transaction, and behavioural signals?
-2. **Recommendation strategy:** Can product recommendation be improved by combining user intent, product quality, seller reliability, and category preference?
-3. **Seller action support:** How can lead scores and intent labels be translated into seller-facing next-best actions?
-4. **Experiment evaluation:** Under a controlled simulated experiment, does an intent-aware recommendation strategy outperform a popularity-based baseline?
+1. **Marketplace diagnosis:** How is the marketplace performing across users, categories, sellers, payment behaviour, review quality, and delivery reliability?
+2. **Lead generation:** How can high-intent users be identified from review, delivery, transaction, and behavioural signals?
+3. **Recommendation strategy:** Can product recommendation be improved by combining user intent, product quality, seller reliability, and category preference?
+4. **Seller action support:** How can lead scores and intent labels be translated into seller-facing next-best actions?
+5. **Experiment evaluation:** Under a controlled simulated experiment, does an intent-aware recommendation strategy outperform a popularity-based baseline?
 
 A basic popularity-based recommendation strategy is easy to implement, but it ignores several important signals:
 
@@ -769,7 +773,7 @@ The project produced several findings that can be translated into business actio
 
 ## 14. Product Roadmap and MVP Plan
 
-This project can be interpreted as a staged MVP roadmap for an SMB lead generation product. The current version is not a production system, but it shows how the product could be built and tested in phases.
+This project can be interpreted as a staged MVP roadmap for an SMB lead generation product. The current version is not a production system, but it implements a prototype version of each major layer: analytics foundation, lead generation, recommendation strategy, seller action support, and experiment reporting.
 
 ### MVP 0: Analytics Foundation
 
@@ -825,7 +829,7 @@ Since the public dataset does not include front-end behavioural logs, this proje
 
 The third stage is to recommend relevant products and sellers to high-intent users.
 
-This project compares three recommendation strategies: popularity-based recommendation, category-preference recommendation, and intent-aware recommendation. The intent-aware strategy uses user intent, product performance, seller reliability, category preference, and lead quality signals.
+At this stage, three recommendation strategies are compared: popularity-based recommendation, category-preference recommendation, and intent-aware recommendation. The intent-aware strategy uses user intent, product performance, seller reliability, category preference, and lead quality signals.
 
 **Scope:**
 
@@ -864,9 +868,9 @@ A recommendation score alone does not tell a seller what to do. The LLM-style se
 
 **Product value:** this stage turns the system from a ranking tool into a seller decision-support product. It helps SMB sellers act on lead generation insights without needing to interpret raw model scores.
 
-### MVP 4: Experiment and Dashboard Layer
+### MVP 4: Experimentation and Stakeholder Reporting Layer
 
-The fifth stage is to evaluate whether the strategy improves business outcomes and communicate the results to stakeholders.
+The fifth stage is to evaluate whether the strategy improves business outcomes and communicate the results to product, growth, and seller operations stakeholders.
 
 This project uses a simulated A/B test framework to compare control and treatment groups. It then presents the findings in Tableau dashboards for business users.
 
@@ -888,7 +892,7 @@ This project uses a simulated A/B test framework to compare control and treatmen
 
 **Product value:** this stage connects product strategy with measurable business outcomes. It helps the team decide whether the recommendation strategy should be iterated, expanded, or tested with real users.
 
-### Future Production Version
+### Production Roadmap Extension
 
 A production version would require real platform data and real-time infrastructure.
 
