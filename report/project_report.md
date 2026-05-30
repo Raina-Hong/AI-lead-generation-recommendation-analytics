@@ -11,7 +11,7 @@
 ## Table of Contents
 
 - [1. Introduction](#1-introduction)
-- [2. Business Problem](#2-business-problem)
+- [2. Product Problem Framing, User Persona and Journey](#2-product-problem-framing-user-persona-and-journey)
 - [3. Data Sources and Analytical Tables](#3-data-sources-and-analytical-tables)
 - [4. Data Cleaning and Feature Engineering](#4-data-cleaning-and-feature-engineering)
 - [5. SQL Business Analysis](#5-sql-business-analysis)
@@ -23,9 +23,10 @@
 - [11. Simulated AB Test Evaluation](#11-simulated-ab-test-evaluation)
 - [12. Tableau Dashboard Analysis](#12-tableau-dashboard-analysis)
 - [13. Key Findings and Business Recommendations](#13-key-findings-and-business-recommendations)
-- [14. Production Considerations and Limitations](#14-production-considerations-and-limitations)
-- [15. Future Improvements](#15-future-improvements)
-- [16. Conclusion](#16-conclusion)
+- [14. Product Roadmap and MVP Plan](#14-product-roadmap-and-mvp-plan)
+- [15. Production Considerations and Limitations](#15-production-considerations-and-limitations)
+- [16. Future Improvements](#16-future-improvements)
+- [17. Conclusion](#17-conclusion)
 
 
 ## 1. Introduction
@@ -49,11 +50,30 @@ The final output is not just a notebook exercise. It includes cleaned analytical
 
 > **Key takeaway:** I used a real transaction dataset to build the kind of analytical layer a marketplace would need before scaling lead generation and recommendation decisions.
 
-## 2. Business Problem
+## 2. Product Problem Framing, User Persona and Journey
 
-For an e-commerce marketplace, recommendation is not only a ranking problem. A platform needs to understand which users are most likely to convert, which products and sellers are commercially reliable, and whether a more targeted recommendation strategy can outperform a simple popularity baseline.
+### 2.1 Product Problem Framing
 
-From the seller side, the problem is also operational. SMB sellers may not have a dedicated analytics or growth team, so they do not only need a ranked product list. They need to know which users should be prioritised, why those users are valuable, and what follow-up action should be taken next.
+This project is framed as a product analytics problem for a marketplace platform serving small and medium-sized sellers.
+
+The problem is not simply how to recommend products. In a lead generation scenario, SMB sellers need to know which users are worth following up with, why those users may convert, what product or seller should be recommended, and what action should be taken next.
+
+From the platform side, the challenge is also broader than ranking. The platform needs to connect transaction data, review signals, delivery quality, user engagement, recommendation logic, and experiment evaluation into one workflow.
+
+The product problem can be defined as:
+
+> How can a marketplace platform help SMB sellers turn fragmented user, order, review, delivery, and engagement signals into high-intent lead prioritisation, relevant recommendations, and actionable seller follow-up decisions?
+
+This framing shaped the project design. Instead of building only one recommendation model, I built an end-to-end workflow:
+
+`Data cleaning → SQL business analysis → Synthetic funnel → Intent classification → Lead scoring → Recommendation strategy → LLM-style seller action → A/B test evaluation`
+
+The project answers four business questions:
+
+1. **Lead generation:** How can high-intent users be identified from review, delivery, transaction, and behavioural signals?
+2. **Recommendation strategy:** Can product recommendation be improved by combining user intent, product quality, seller reliability, and category preference?
+3. **Seller action support:** How can lead scores and intent labels be translated into seller-facing next-best actions?
+4. **Experiment evaluation:** Under a controlled simulated experiment, does an intent-aware recommendation strategy outperform a popularity-based baseline?
 
 A basic popularity-based recommendation strategy is easy to implement, but it ignores several important signals:
 
@@ -62,16 +82,83 @@ A basic popularity-based recommendation strategy is easy to implement, but it ig
 - whether the product has good review quality;
 - whether the seller delivers reliably;
 - whether the user belongs to a higher-value customer segment;
+- whether the seller knows what action to take next;
 - whether the strategy improves downstream conversion and revenue metrics.
 
-This project answers four business questions:
+This is why the project combines recommendation analytics with lead scoring, seller action guidance, and simulated experiment evaluation.
 
-1. **Lead generation:** How can high-intent users be identified from review, delivery, transaction, and behavioural signals?
-2. **Recommendation strategy:** Can product recommendation be improved by combining user intent, product quality, seller reliability, and category preference?
-3. **Seller action support:** How can lead scores and intent labels be translated into seller-facing next-best actions?
-4. **Experiment evaluation:** Under a controlled simulated experiment, does an intent-aware recommendation strategy outperform a popularity-based baseline?
+### 2.2 User Persona
+
+The product serves three types of users.
+
+#### Persona 1: SMB Seller
+
+The primary user is a small or medium-sized seller on a marketplace platform.
+
+This seller may have traffic, orders, customer reviews, and product visitors, but may not have a dedicated analytics or growth team. Their pain points are practical:
+
+- they do not know which users are worth following up with;
+- they do not have time to manually analyse user behaviour or review text;
+- they need to understand whether a user is price-sensitive, delivery-concerned, quality-concerned, or ready to purchase;
+- they need simple follow-up guidance rather than raw model scores;
+- they care about turning visitors, inquiries, and high-intent users into actual purchases.
+
+For this persona, the product should not only show a lead score. It should provide a clear next step, such as sending a limited-time offer, highlighting delivery reliability, offering a discount bundle, showing social proof, or providing customer support.
+
+This is why the final LLM-style seller action layer outputs seller-facing fields such as `seller_action_type`, `seller_action_priority`, `seller_action_message`, and `llm_style_explanation`.
+
+#### Persona 2: Marketplace Product / Growth Team
+
+The second user is the internal marketplace product or growth team.
+
+This team needs to design and evaluate lead generation strategies at platform level. Their questions are different from the seller's questions:
+
+- which user segments show stronger purchase intent?
+- which categories or sellers perform better?
+- does the intent-aware recommendation strategy outperform a popularity-based baseline?
+- which seller actions are most common?
+- does the strategy improve CTR, inquiry rate, purchase rate, and revenue per user?
+- does the system create risks such as low product diversity, seller concentration, or delivery complaints?
+
+For this persona, the project provides SQL KPI outputs, funnel analysis, recommendation strategy comparison, A/B test summaries, and Tableau dashboards.
+
+#### Persona 3: End Buyer
+
+The end buyer is the customer who interacts with marketplace recommendations, seller messages, and product offers.
+
+For buyers, the goal is not to maximise seller outreach at all costs. The system should make recommendations and follow-up actions more relevant to their needs. For example:
+
+- price-sensitive users should receive value-focused offers;
+- delivery-concerned users should see delivery reassurance;
+- product-quality-concerned users should see reviews or social proof;
+- after-sales users should receive support rather than aggressive promotion.
+
+This helps connect seller growth with a better buyer experience.
+
+### 2.3 User Journey
+
+The product journey can be described as a lead-to-action workflow.
+
+1. **Buyer interaction:** A buyer views, clicks, adds to cart, inquires about, or purchases products on the marketplace. Since the public Olist dataset does not include real clickstream logs, this project creates a synthetic event funnel to simulate these behavioural signals.
+
+2. **Signal capture:** The platform combines transaction data, product category, seller information, review score, review text, delivery delay, traffic source, device type, and synthetic engagement events.
+
+3. **Intent understanding:** The intent layer classifies users into categories such as `ready_to_purchase`, `price_sensitive`, `delivery_concern`, `product_quality_concern`, `after_sales_issue`, `general_negative`, or `neutral_or_unclear`.
+
+4. **Lead prioritisation:** The lead scoring layer converts behavioural, transaction, review, and delivery signals into lead scores and high-intent flags. This helps identify which users should receive more attention.
+
+5. **Recommendation generation:** The recommendation layer creates product and seller candidates using popularity-based, category-preference, and intent-aware strategies.
+
+6. **Seller action support:** The LLM-style seller action layer translates lead score, intent category, recommendation output, and seller quality signals into practical next-best actions for sellers.
+
+7. **Experiment evaluation:** The A/B test layer compares the treatment strategy against the control strategy using CTR, inquiry rate, purchase rate, revenue per user, and statistical significance testing.
+
+This journey connects user behaviour, AI-driven interpretation, recommendation strategy, seller action, and business outcome evaluation in one project workflow.
 
 ---
+
+
+
 
 ## 3. Data Sources and Analytical Tables
 
@@ -680,7 +767,147 @@ The project produced several findings that can be translated into business actio
 
 ---
 
-## 14. Production Considerations and Limitations
+## 14. Product Roadmap and MVP Plan
+
+This project can be interpreted as a staged MVP roadmap for an SMB lead generation product. The current version is not a production system, but it shows how the product could be built and tested in phases.
+
+### MVP 0: Analytics Foundation
+
+The first stage is to build a reliable data foundation.
+
+In this project, this stage is covered by the data cleaning and SQL analysis notebooks. The workflow cleans order, customer, seller, product, payment, review, and delivery data, then creates business KPI outputs for marketplace performance analysis.
+
+**Scope:**
+
+- clean and standardise marketplace transaction data;
+- create order-level analytical tables;
+- analyse GMV, orders, categories, sellers, payment methods, review quality, and delivery delay;
+- export SQL-based KPI tables for reporting.
+
+**Main outputs:**
+
+- `clean_order_base.csv`
+- `overall_kpi_summary.csv`
+- `monthly_gmv_trend.csv`
+- `category_performance.csv`
+- `top_sellers_by_gmv.csv`
+- `delivery_delay_impact.csv`
+
+**Product value:** this stage gives the product and growth team a reliable view of marketplace performance before building any lead generation or recommendation logic.
+
+### MVP 1: Lead Generation Engine
+
+The second stage is to identify high-intent users.
+
+Since the public dataset does not include front-end behavioural logs, this project creates a synthetic funnel around confirmed orders. The funnel simulates user actions such as view, click, add-to-cart, inquiry, and purchase. The intent and lead scoring notebooks then classify user intent and estimate lead quality.
+
+**Scope:**
+
+- create synthetic user event logs;
+- build funnel metrics by category, traffic source, user segment, and seller;
+- classify user intent from review, delivery, transaction, and behaviour signals;
+- calculate rule-based and model-based lead scores;
+- flag high-intent users.
+
+**Main outputs:**
+
+- `fact_user_events.csv`
+- `fact_reviews_llm.csv`
+- `fact_lead_scores.csv`
+- `intent_distribution.csv`
+- `intent_category_summary.csv`
+- `lead_score_by_user_segment.csv`
+- `lead_scoring_model_metrics.csv`
+
+**Product value:** this stage helps the platform and sellers understand which users are more likely to convert and why they should be prioritised.
+
+### MVP 2: Recommendation Strategy
+
+The third stage is to recommend relevant products and sellers to high-intent users.
+
+This project compares three recommendation strategies: popularity-based recommendation, category-preference recommendation, and intent-aware recommendation. The intent-aware strategy uses user intent, product performance, seller reliability, category preference, and lead quality signals.
+
+**Scope:**
+
+- build product performance and seller quality tables;
+- generate recommendation candidates for selected users;
+- compare strategy-level recommendation quality;
+- prepare experiment groups for A/B test evaluation.
+
+**Main outputs:**
+
+- `fact_recommendations.csv`
+- `recommendation_strategy_summary.csv`
+- `recommendation_user_level.csv`
+- `recommendation_category_summary.csv`
+
+**Product value:** this stage moves the system from lead identification to product and seller matching. It tests whether recommendation quality can be improved by using more context than popularity alone.
+
+### MVP 3: LLM-Style Seller Action Assistant
+
+The fourth stage is to make the recommendation output actionable for SMB sellers.
+
+A recommendation score alone does not tell a seller what to do. The LLM-style seller action layer converts lead scores, intent categories, recommendation candidates, and seller quality signals into seller-facing next-best actions.
+
+**Scope:**
+
+- generate seller action type;
+- assign seller action priority;
+- produce seller-facing message suggestions;
+- provide natural-language explanations for each action;
+- validate the mapping between user intent and seller action.
+
+**Main outputs:**
+
+- `llm_seller_action_recommendations.csv`
+- `llm_seller_action_summary.csv`
+
+**Product value:** this stage turns the system from a ranking tool into a seller decision-support product. It helps SMB sellers act on lead generation insights without needing to interpret raw model scores.
+
+### MVP 4: Experiment and Dashboard Layer
+
+The fifth stage is to evaluate whether the strategy improves business outcomes and communicate the results to stakeholders.
+
+This project uses a simulated A/B test framework to compare control and treatment groups. It then presents the findings in Tableau dashboards for business users.
+
+**Scope:**
+
+- simulate experiment outcomes;
+- compare CTR, inquiry rate, purchase rate, and revenue per user;
+- run statistical significance testing;
+- analyse treatment effects by segment and category;
+- build dashboards for executive summary, intent quality, and A/B test performance.
+
+**Main outputs:**
+
+- `fact_recommendation_experiment.csv`
+- `ab_test_summary.csv`
+- `ab_test_uplift_summary.csv`
+- `ab_test_significance.csv`
+- Tableau dashboards
+
+**Product value:** this stage connects product strategy with measurable business outcomes. It helps the team decide whether the recommendation strategy should be iterated, expanded, or tested with real users.
+
+### Future Production Version
+
+A production version would require real platform data and real-time infrastructure.
+
+The next version could include:
+
+- real impression, click, add-to-cart, inquiry, chat, livestream, and purchase logs;
+- real non-purchase sessions to model drop-off behaviour more accurately;
+- real LLM or embedding-based intent understanding from reviews, messages, and seller-buyer conversations;
+- real-time lead scoring and recommendation APIs;
+- CRM or seller centre integration for seller follow-up actions;
+- online A/B testing with live randomisation;
+- guardrail metrics for refund rate, complaint rate, delivery delay, seller fairness, product diversity, and long-term retention;
+- content safety and hallucination checks for generated seller messages.
+
+The roadmap shows how this portfolio project could evolve from an analytical prototype into a practical SMB seller growth product.
+
+---
+
+## 15. Production Considerations and Limitations
 
 The main production consideration is data availability. Olist is a public transaction dataset, so it does not include real front-end behavioural logs, non-converted visitor sessions, live recommendation exposure, or production experiment outcomes. I handled this by building a business-driven synthetic event pipeline, but a live version would need platform-level event tracking.
 
@@ -698,7 +925,7 @@ These limitations do not weaken the project design. They define the next enginee
 > **Key takeaway:** the project proves the analytics logic; productionisation would require event tracking, real-time infrastructure, monitoring, and marketplace guardrails.
 
 
-## 15. Future Improvements
+## 16. Future Improvements
 
 A stronger next version would add synthetic non-purchase sessions. This would allow the funnel to include users who drop off at view, click, add-to-cart, or inquiry stages before purchase, making the journey closer to a real acquisition funnel.
 
@@ -716,7 +943,7 @@ The experiment design could also be extended with power analysis, minimum detect
 
 ---
 
-## 16. Conclusion
+## 17. Conclusion
 
 This project proves that moving beyond popularity-based recommendation can create substantial commercial value.
 
