@@ -22,7 +22,7 @@
 
 **The Pain Point:** SMB (Small & Medium Business) sellers may have traffic, orders, customer reviews, and product visitors, but they often lack the analytics resources to know *which visitor is a high-intent lead* and *what specific follow-up action to take next*.
 
-> **Note:** The project uses the public Olist Brazilian E-Commerce dataset as the transaction foundation. Since the original dataset does not contain real clickstream, impression, inquiry, or live-chat logs, the behavioural funnel and A/B test outcomes are synthetically generated using business-rule assumptions. This makes the project suitable as a portfolio prototype for recommendation strategy, lead scoring, and product analytics design, rather than a production causal experiment.
+> **Note:** The project uses the public Olist Brazilian E-Commerce dataset as the transaction foundation. Since the original dataset does not contain real clickstream, impression, inquiry, or live-chat logs, the behavioural funnel and A/B test outcomes are synthetically generated using business-rule assumptions. This makes the project suitable as a portfolio prototype for recommendation strategy, lead scoring, and product analytics design, rather than a production causal experiment. This project simulates an SMB growth and recommendation strategy use case, combining intent modelling, lead scoring, ranking logic, and offline experiment evaluation to support data-driven product decisions.
 
 **The Solution:** This project moves from a simple popularity-based recommendation baseline to a complete **Lead-to-Action Workflow** that connects customer behaviour, intent mining, recommendation strategy, seller actions, and business outcome evaluation.
 
@@ -38,6 +38,18 @@ It demonstrates skills directly relevant to AI product analytics and recommendat
 - evaluating treatment effects through simulated A/B testing;
 - turning model outputs into seller-facing business actions;
 - communicating insights through Tableau dashboards and structured reports.
+
+## 🎯 How This Project Maps to Recommendation Strategy & Lead Generation
+
+This project simulates an SMB growth and lead generation scenario, showing how product analytics, intent modelling, recommendation logic, and experiment evaluation can work together to improve user conversion and seller decision-making.
+
+| Product / Analytics Focus Area | Project Evidence |
+|---|---|
+| **Business scenario: SMB seller growth** | The project addresses a common SMB challenge: sellers may have traffic, orders, reviews, and product visitors, but lack a structured way to identify high-intent users and improve conversion. The workflow models a lead generation funnel from view to inquiry to purchase. |
+| **Intent modelling: lead generation intent** | The intent layer uses review text, rating, delivery reliability, behavioural signals, and lead scores to classify user intent and generate seller-facing action insights. |
+| **Recommendation strategy: ranking and matching logic** | The project compares popularity-based, category-preference, and intent-aware recommendation strategies, incorporating product intent rate, review quality, delivery reliability, and SMB exploration into ranking decisions. |
+| **Experiment evaluation: A/B testing impact** | The offline A/B testing framework evaluates CTR, inquiry rate, purchase rate, and revenue per user. The intent-aware strategy achieved a simulated **+31.4% purchase-rate lift** and **+44.9% revenue-per-user lift** over the popularity baseline. |
+
 
 ## 🏗️ System Architecture & Workflow
 
